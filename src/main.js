@@ -550,14 +550,9 @@ render(eventsElement, createDayListTemplate());
 
 const dayElement = eventsElement.querySelector(`.day`);
 
-const eventTemplates = [];
-for (let i = 0; i < EVENT_AMOUNT; i++) {
-  eventTemplates.push(createEventTemplate());
-}
-
 const eventListTemplate = (
   `<ul class="trip-events__list">
-    ${eventTemplates.map((template) => `<li class="trip-events__item">${template}</li>`).join(``)}
+    ${`<li class="trip-events__item">${createEventTemplate()}</li>`.repeat(EVENT_AMOUNT)}
   </ul>`
 );
 
