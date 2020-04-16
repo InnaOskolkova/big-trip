@@ -1,12 +1,24 @@
-export const createDayListTemplate = () => (
-  `<ul class="trip-days">
+import {formatDate} from "../utils";
 
-    <li class="trip-days__item day">
+export const createDayTemplate = (counter, date, eventTemplates) => {
+  // Обнуление часов, минут, секунд, миллисекунд без изменения исходного объекта
+  date = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+  return (
+    `<li class="trip-days__item day">
       <div class="day__info">
-        <span class="day__counter">1</span>
-        <time class="day__date" datetime="2019-03-18">MAR 18</time>
+        <span class="day__counter">${counter}</span>
+        <time
+          class="day__date"
+          datetime="${date.toISOString()}">
+          ${formatDate(date)}
+        </time>
       </div>
-    </li>
+      <ul class="trip-events__list">
+        ${eventTemplates.map((template) => `<li class="trip-events__item">${template}</li>`).join(``)}
+      </ul>
+    </li>`
+  );
+};
 
-  </ul>`
-);
+export const createDayListTemplate = () => `<ul class="trip-days"></ul>`;
