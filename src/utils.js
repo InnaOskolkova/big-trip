@@ -52,6 +52,16 @@ export const formatFullDate = (date) => (
   }`
 );
 
+export const formatISODate = (date) => (
+  `${
+    date.getFullYear()
+  }-${
+    formatDateUnit(date.getMonth() + 1)
+  }-${
+    formatDateUnit(date.getDate())
+  }`
+);
+
 export const formatDuration = (beginDate, endDate) => {
   let duration = endDate - beginDate;
 
