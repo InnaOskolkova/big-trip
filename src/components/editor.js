@@ -7,7 +7,8 @@ import {
 import {
   getPreposition,
   formatTime,
-  formatFullDate
+  formatFullDate,
+  createElementFromTemplate
 } from "../utils";
 
 const createTypeMarkup = (type, isChecked) => {
@@ -90,11 +91,11 @@ const createPhotosMarkup = (photos) => (
   </div>`
 );
 
-export const createEditorTemplate = (event) => {
+const createEditorTemplate = (event) => {
   const {type, destination, beginDate, endDate, price, offers, description, photos} = event;
 
   return (
-    `<form class="trip-events__item event event--edit" action="#" method="post">
+    `<form class="event event--edit" action="#" method="post">
 
       <header class="event__header">
 
@@ -207,3 +208,26 @@ export const createEditorTemplate = (event) => {
     </form>`
   );
 };
+
+export default class Editor {
+  constructor(event) {
+    this._event = event;
+    this._element = null;
+  }
+
+  getTemplate() {
+    return createEditorTemplate(this._event);
+  }
+
+  getElement() {
+    if (!this._element) {
+      this._element = createElementFromTemplate(this.getTemplate());
+    }
+
+    return this._element;
+  }
+
+  removeElement() {
+    this._element = null;
+  }
+}

@@ -4,6 +4,7 @@ import {
   getPreposition,
   formatTime,
   formatDuration,
+  createElementFromTemplate
 } from "../utils";
 
 const createOfferMarkup = (offer) => (
@@ -21,7 +22,7 @@ const createOffersMarkup = (offers) => (
   </ul>`
 );
 
-export const createEventTemplate = (event) => {
+const createEventTemplate = (event) => {
   const {type, destination, beginDate, endDate, price, offers} = event;
 
   return (
@@ -67,3 +68,26 @@ export const createEventTemplate = (event) => {
     </div>`
   );
 };
+
+export default class Event {
+  constructor(event) {
+    this._event = event;
+    this._element = null;
+  }
+
+  getTemplate() {
+    return createEventTemplate(this._event);
+  }
+
+  getElement() {
+    if (!this._element) {
+      this._element = createElementFromTemplate(this.getTemplate());
+    }
+
+    return this._element;
+  }
+
+  removeElement() {
+    this._element = null;
+  }
+}
