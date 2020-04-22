@@ -7,6 +7,11 @@ export const MILLISECONDS_PER_HOUR = MILLISECONDS_PER_MINUTE * 60;
 
 export const MILLISECONDS_PER_DAY = MILLISECONDS_PER_HOUR * 24;
 
+export const RenderPosition = {
+  AFTERBEGIN: `afterbegin`,
+  BEFOREEND: `beforeend`
+};
+
 // Константы фильтров
 export const FILTERS = [`everything`, `future`, `past`];
 

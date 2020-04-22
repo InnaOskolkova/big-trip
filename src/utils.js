@@ -3,6 +3,7 @@ import {
   MILLISECONDS_PER_MINUTE,
   MILLISECONDS_PER_HOUR,
   MILLISECONDS_PER_DAY,
+  RenderPosition,
   eventGroupsToEventTypes,
   eventGroupsToPrepositions
 } from "./const";
@@ -89,3 +90,22 @@ export const compareDates = (leftDate, rightDate) => (
   leftDate.getMonth() === rightDate.getMonth() &&
   leftDate.getDate() === rightDate.getDate()
 );
+
+// Служебные функции для работы с элементами DOM
+export const createElementFromTemplate = (template) => {
+  const element = document.createElement(`div`);
+  element.innerHTML = template;
+
+  return element.firstChild;
+};
+
+export const render = (container, element, position = RenderPosition.BEFOREEND) => {
+  switch (position) {
+    case RenderPosition.AFTERBEGIN:
+      container.prepend(element);
+      break;
+    case RenderPosition.BEFOREEND:
+      container.append(element);
+      break;
+  }
+};
