@@ -1,6 +1,10 @@
 import {RenderPosition} from "./const";
 
-import {compareDates, render} from "./utils";
+import {
+  groupBy,
+  formatISODate,
+  render
+} from "./utils";
 
 import InfoComponent from "./components/info";
 import MenuComponent from "./components/menu";
@@ -40,33 +44,9 @@ const linkEventToEditor = (event, editor) => {
 };
 
 const events = generateEvents();
-const groupedByDateEvents = [];
+const groupedByDateEvents = groupBy(events, (event) => formatISODate(event.beginDate));
 
-let currentEventAmount = 0;
-let currentDate = events[0].beginDate;
-let eventsPerCurrentDate = 0;
-
-events.forEach((event, i) => {
-  const eventBeginDate = event.beginDate;
-
-  if (compareDates(currentDate, eventBeginDate)) {
-    eventsPerCurrentDate++;
-  } else {
-    const previousEventAmount = currentEventAmount;
-    currentEventAmount += eventsPerCurrentDate;
-
-    groupedByDateEvents.push(events.slice(previousEventAmount, currentEventAmount));
-
-    currentDate = eventBeginDate;
-    eventsPerCurrentDate = 1;
-  }
-
-  if (i === events.length - 1) {
-    groupedByDateEvents.push(events.slice(currentEventAmount));
-  }
-});
-
-groupedByDateEvents.map((groupedEvents, i) => {
+Object.entries(groupedByDateEvents).forEach(([dateString, groupedEvents], i) => {
   const eventComponents = [];
 
   groupedEvents.forEach((event) => {
@@ -77,7 +57,7 @@ groupedByDateEvents.map((groupedEvents, i) => {
 
   render(dayListElement, new DayComponent({
     number: i + 1,
-    date: groupedEvents[0].beginDate,
+    date: new Date(dateString),
     eventComponents
   }).getElement());
 });
