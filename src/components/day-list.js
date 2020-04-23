@@ -1,19 +1,25 @@
-import {formatDate, formatISODate} from "../utils";
+import {createElementFromTemplate} from "../utils";
 
-export const createDayTemplate = (counter, date, eventTemplates) => (
-  `<li class="trip-days__item day">
-    <div class="day__info">
-      <span class="day__counter">${counter}</span>
-      <time
-        class="day__date"
-        datetime="${formatISODate(date)}">
-        ${formatDate(date)}
-      </time>
-    </div>
-    <ul class="trip-events__list">
-      ${eventTemplates.map((template) => `<li class="trip-events__item">${template}</li>`).join(``)}
-    </ul>
-  </li>`
-);
+const createDayListTemplate = () => `<ul class="trip-days"></ul>`;
 
-export const createDayListTemplate = () => `<ul class="trip-days"></ul>`;
+export default class DayList {
+  constructor() {
+    this._element = null;
+  }
+
+  getTemplate() {
+    return createDayListTemplate();
+  }
+
+  getElement() {
+    if (!this._element) {
+      this._element = createElementFromTemplate(this.getTemplate());
+    }
+
+    return this._element;
+  }
+
+  removeElement() {
+    this._element = null;
+  }
+}

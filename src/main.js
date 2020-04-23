@@ -1,68 +1,63 @@
-import {compareDates} from "./utils";
+import {RenderPosition} from "./const";
 
-import {createInfoTemplate} from "./components/info";
-import {createMenuTemplate} from "./components/menu";
-import {createFilterTemplate} from "./components/filter";
-import {createSortTemplate} from "./components/sort";
-import {createEditorTemplate} from "./components/editor";
-import {createDayTemplate, createDayListTemplate} from "./components/day-list";
-import {createEventTemplate} from "./components/event";
+import {
+  groupBy,
+  formatISODate,
+  render
+} from "./utils";
+
+import InfoComponent from "./components/info";
+import MenuComponent from "./components/menu";
+import FilterComponent from "./components/filter";
+import SortComponent from "./components/sort";
+import DayListComponent from "./components/day-list";
+import DayComponent from "./components/day";
+import EventComponent from "./components/event";
+import EditorComponent from "./components/editor";
 
 import {generateEvents} from "./mock/event";
 
-const render = (container, template, position = `beforeend`) => {
-  container.insertAdjacentHTML(position, template);
-};
-
 const mainElement = document.querySelector(`.trip-main`);
 const controlsElement = mainElement.querySelector(`.trip-controls`);
+const eventListElement = document.querySelector(`.trip-events`);
+const dayListElement = new DayListComponent().getElement();
 
-render(mainElement, createInfoTemplate(), `afterbegin`);
-render(controlsElement, createMenuTemplate());
-render(controlsElement, createFilterTemplate());
+render(mainElement, new InfoComponent().getElement(), RenderPosition.AFTERBEGIN);
+render(controlsElement, new MenuComponent().getElement());
+render(controlsElement, new FilterComponent().getElement());
+render(eventListElement, new SortComponent().getElement());
+render(eventListElement, dayListElement);
 
-const eventsElement = document.querySelector(`.trip-events`);
+const linkEventToEditor = (event, editor) => {
+  const eventElement = event.getElement();
+  const editorElement = editor.getElement();
+  const editButton = eventElement.querySelector(`.event__rollup-btn`);
 
-const events = generateEvents();
+  const editButtonClickHandler = () => eventElement.replaceWith(editorElement);
+  const editorSubmitHandler = (evt) => {
+    evt.preventDefault();
+    editorElement.replaceWith(eventElement);
+  };
 
-render(eventsElement, createSortTemplate());
-render(eventsElement, createEditorTemplate(events[0]));
-render(eventsElement, createDayListTemplate());
-
-// Возможно, логика группировки событий по дням должна происходить внутри какого-либо компонента
-const dayListElement = eventsElement.querySelector(`.trip-days`);
-
-let currentEventAmount = 1;
-
-let currentDate = events[1].beginDate;
-let eventsPerCurrentDate = 0;
-
-let dayCounter = 0;
-
-const renderDay = () => {
-  dayCounter++;
-
-  const previousEventAmount = currentEventAmount;
-  currentEventAmount += eventsPerCurrentDate;
-  eventsPerCurrentDate = 1;
-
-  const eventTemplates = events.slice(previousEventAmount, currentEventAmount)
-    .map(createEventTemplate);
-
-  render(dayListElement, createDayTemplate(dayCounter, currentDate, eventTemplates));
+  editButton.addEventListener(`click`, editButtonClickHandler);
+  editorElement.addEventListener(`submit`, editorSubmitHandler);
 };
 
+const events = generateEvents();
+const groupedByDateEvents = groupBy(events, (event) => formatISODate(event.beginDate));
 
-events.slice(currentEventAmount).forEach((event) => {
-  const eventBeginDate = event.beginDate;
+Object.entries(groupedByDateEvents).forEach(([dateString, groupedEvents], i) => {
+  const eventComponents = [];
 
-  if (compareDates(currentDate, eventBeginDate)) {
-    eventsPerCurrentDate++;
-    return;
-  }
+  groupedEvents.forEach((event) => {
+    const eventComponent = new EventComponent(event);
+    linkEventToEditor(eventComponent, new EditorComponent(event));
+    eventComponents.push(eventComponent);
+  });
 
-  renderDay();
-  currentDate = eventBeginDate;
+  render(dayListElement, new DayComponent({
+    number: i + 1,
+    date: new Date(dateString),
+    eventComponents
+  }).getElement());
 });
-
-renderDay();

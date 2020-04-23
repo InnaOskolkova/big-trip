@@ -3,6 +3,7 @@ import {
   MILLISECONDS_PER_MINUTE,
   MILLISECONDS_PER_HOUR,
   MILLISECONDS_PER_DAY,
+  RenderPosition,
   eventGroupsToEventTypes,
   eventGroupsToPrepositions
 } from "./const";
@@ -21,6 +22,18 @@ export const getRandomIntegerIncludingMax = (max) => getRandomInteger(max + 1);
 export const getRandomElement = (array) => array[getRandomInteger(array.length)];
 
 export const getRandomElements = (array) => array.filter(getRandomBoolean);
+
+export const groupBy = (array, groupCalculator) => array.reduce((groups, element) => {
+  const group = groupCalculator(element);
+
+  if (!groups[group]) {
+    groups[group] = [];
+  }
+
+  groups[group].push(element);
+
+  return groups;
+}, {});
 
 // Служебные функции для работы с текстом
 export const splitTextIntoSentences = (text) => text
@@ -84,8 +97,21 @@ export const formatDuration = (beginDate, endDate) => {
   ).trim();
 };
 
-export const compareDates = (leftDate, rightDate) => (
-  leftDate.getFullYear() === rightDate.getFullYear() &&
-  leftDate.getMonth() === rightDate.getMonth() &&
-  leftDate.getDate() === rightDate.getDate()
-);
+// Служебные функции для работы с элементами DOM
+export const createElementFromTemplate = (template) => {
+  const element = document.createElement(`div`);
+  element.innerHTML = template;
+
+  return element.firstChild;
+};
+
+export const render = (container, element, position = RenderPosition.BEFOREEND) => {
+  switch (position) {
+    case RenderPosition.AFTERBEGIN:
+      container.prepend(element);
+      break;
+    case RenderPosition.BEFOREEND:
+      container.append(element);
+      break;
+  }
+};

@@ -3,6 +3,8 @@ import {
   DEFAULT_FILTER
 } from "../const";
 
+import {createElementFromTemplate} from "../utils";
+
 const createFilterMarkup = (filter, isChecked) => (
   `<div class="trip-filters__filter">
     <input
@@ -20,10 +22,10 @@ const createFilterMarkup = (filter, isChecked) => (
   </div>`
 );
 
-export const createFilterTemplate = () => (
-  `<h2 class="visually-hidden">Filter events</h2>
+const createFilterTemplate = () => (
+  `<form class="trip-filters" action="#" method="get">
 
-  <form class="trip-filters" action="#" method="get">
+    <h2 class="visually-hidden">Filter events</h2>
 
     ${FILTERS.map((filter) => createFilterMarkup(filter, filter === DEFAULT_FILTER)).join(``)}
 
@@ -35,3 +37,25 @@ export const createFilterTemplate = () => (
 
   </form>`
 );
+
+export default class Filter {
+  constructor() {
+    this._element = null;
+  }
+
+  getTemplate() {
+    return createFilterTemplate();
+  }
+
+  getElement() {
+    if (!this._element) {
+      this._element = createElementFromTemplate(this.getTemplate());
+    }
+
+    return this._element;
+  }
+
+  removeElement() {
+    this._element = null;
+  }
+}
