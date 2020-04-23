@@ -24,8 +24,6 @@ render(controlsElement, new FilterComponent().getElement());
 render(eventListElement, new SortComponent().getElement());
 render(eventListElement, dayListElement);
 
-const events = generateEvents();
-
 const linkEventToEditor = (event, editor) => {
   const eventElement = event.getElement();
   const editorElement = editor.getElement();
@@ -41,43 +39,47 @@ const linkEventToEditor = (event, editor) => {
   editorElement.addEventListener(`submit`, editorSubmitHandler);
 };
 
+const events = generateEvents();
+const groupedByDateEvents = [];
+
 let currentEventAmount = 0;
 let currentDate = events[0].beginDate;
 let eventsPerCurrentDate = 0;
-let dayCounter = 0;
 
-const renderDay = () => {
-  dayCounter++;
+events.forEach((event, i) => {
+  const eventBeginDate = event.beginDate;
 
-  const previousEventAmount = currentEventAmount;
-  currentEventAmount += eventsPerCurrentDate;
+  if (compareDates(currentDate, eventBeginDate)) {
+    eventsPerCurrentDate++;
+  } else {
+    const previousEventAmount = currentEventAmount;
+    currentEventAmount += eventsPerCurrentDate;
 
+    groupedByDateEvents.push(events.slice(previousEventAmount, currentEventAmount));
+
+    currentDate = eventBeginDate;
+    eventsPerCurrentDate = 1;
+  }
+
+  if (i === events.length - 1) {
+    groupedByDateEvents.push(events.slice(currentEventAmount));
+  }
+});
+
+const dayComponents = groupedByDateEvents.map((groupedEvents, i) => {
   const eventComponents = [];
 
-  events.slice(previousEventAmount, currentEventAmount).map((event) => {
+  groupedEvents.forEach((event) => {
     const eventComponent = new EventComponent(event);
     linkEventToEditor(eventComponent, new EditorComponent(event));
     eventComponents.push(eventComponent);
   });
 
-  render(dayListElement, new DayComponent({
-    number: dayCounter,
-    date: currentDate,
-    events: eventComponents
-  }).getElement());
-};
-
-events.forEach((event) => {
-  const eventBeginDate = event.beginDate;
-
-  if (compareDates(currentDate, eventBeginDate)) {
-    eventsPerCurrentDate++;
-    return;
-  }
-
-  renderDay();
-  currentDate = eventBeginDate;
-  eventsPerCurrentDate = 1;
+  return new DayComponent({
+    number: i + 1,
+    date: groupedEvents[0].beginDate,
+    eventComponents
+  });
 });
 
-renderDay();
+dayComponents.forEach((dayComponent) => render(dayListElement, dayComponent.getElement()));

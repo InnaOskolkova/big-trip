@@ -39,10 +39,10 @@ export default class Day {
 
       const eventListElement = this._element.querySelector(`.trip-events__list`);
 
-      this._day.events.forEach((event) => {
+      this._day.eventComponents.forEach((eventComponent) => {
         const listItemElement = createElementFromTemplate(`<li class="trip-events__item"></li>`);
 
-        render(listItemElement, event.getElement());
+        render(listItemElement, eventComponent.getElement());
         render(eventListElement, listItemElement);
       });
     }
