@@ -66,7 +66,7 @@ events.forEach((event, i) => {
   }
 });
 
-const dayComponents = groupedByDateEvents.map((groupedEvents, i) => {
+groupedByDateEvents.map((groupedEvents, i) => {
   const eventComponents = [];
 
   groupedEvents.forEach((event) => {
@@ -75,11 +75,9 @@ const dayComponents = groupedByDateEvents.map((groupedEvents, i) => {
     eventComponents.push(eventComponent);
   });
 
-  return new DayComponent({
+  render(dayListElement, new DayComponent({
     number: i + 1,
     date: groupedEvents[0].beginDate,
     eventComponents
-  });
+  }).getElement());
 });
-
-dayComponents.forEach((dayComponent) => render(dayListElement, dayComponent.getElement()));
