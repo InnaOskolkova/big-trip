@@ -4,6 +4,7 @@ import {
   MILLISECONDS_PER_HOUR,
   MILLISECONDS_PER_DAY,
   RenderPosition,
+  ESC_KEY,
   eventGroupsToEventTypes,
   eventGroupsToPrepositions
 } from "./const";
@@ -115,3 +116,6 @@ export const render = (container, element, position = RenderPosition.BEFOREEND) 
       break;
   }
 };
+
+// Служебные функции для работы с клавиатурой
+export const checkEscKey = (key) => key === ESC_KEY;
