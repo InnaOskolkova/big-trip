@@ -12,6 +12,8 @@ export const RenderPosition = {
   BEFOREEND: `beforeend`
 };
 
+export const ESC_KEY = `Escape`;
+
 // Константы фильтров
 export const FILTERS = [`everything`, `future`, `past`];
 
