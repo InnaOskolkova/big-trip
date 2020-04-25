@@ -1,9 +1,6 @@
-import {
-  SORTS,
-  DEFAULT_SORT
-} from "../const";
+import {SORTS, DEFAULT_SORT} from "../const";
 
-import {createElementFromTemplate} from "../utils";
+import AbstractComponent from "./abstract-component";
 
 const createSortMarkup = (sort, isChecked) => (
   `<div class="trip-sort__item trip-sort__item--${sort}">
@@ -37,24 +34,8 @@ const createSortTemplate = () => (
   </form>`
 );
 
-export default class Sort {
-  constructor() {
-    this._element = null;
-  }
-
+export default class Sort extends AbstractComponent {
   getTemplate() {
     return createSortTemplate();
-  }
-
-  getElement() {
-    if (!this._element) {
-      this._element = createElementFromTemplate(this.getTemplate());
-    }
-
-    return this._element;
-  }
-
-  removeElement() {
-    this._element = null;
   }
 }

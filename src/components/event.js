@@ -1,11 +1,9 @@
 import {EVENT_MAX_RENDERED_OFFER_AMOUNT} from "../const";
 
-import {
-  getPreposition,
-  formatTime,
-  formatDuration,
-  createElementFromTemplate
-} from "../utils";
+import {formatTime, formatDuration} from "../utils/date";
+import {getPreposition} from "../utils/text";
+
+import AbstractComponent from "./abstract-component";
 
 const createOfferMarkup = (offer) => (
   `<li class="event__offer">
@@ -69,25 +67,13 @@ const createEventTemplate = (event) => {
   );
 };
 
-export default class Event {
+export default class Event extends AbstractComponent {
   constructor(event) {
+    super();
     this._event = event;
-    this._element = null;
   }
 
   getTemplate() {
     return createEventTemplate(this._event);
-  }
-
-  getElement() {
-    if (!this._element) {
-      this._element = createElementFromTemplate(this.getTemplate());
-    }
-
-    return this._element;
-  }
-
-  removeElement() {
-    this._element = null;
   }
 }
