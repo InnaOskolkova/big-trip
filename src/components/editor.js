@@ -212,4 +212,8 @@ export default class Editor extends AbstractComponent {
   getTemplate() {
     return createEditorTemplate(this._event);
   }
+
+  setSubmitHandler(handler) {
+    this.getElement().addEventListener(`submit`, handler);
+  }
 }
