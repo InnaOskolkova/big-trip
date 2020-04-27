@@ -1,9 +1,7 @@
-import {
-  formatDate,
-  formatISODate,
-  createElementFromTemplate,
-  render
-} from "../utils";
+import {createElementFromTemplate, render} from "../utils/dom";
+import {formatDate, formatISODate} from "../utils/date";
+
+import AbstractComponent from "./abstract-component";
 
 const createDayTemplate = (day) => {
   const {number, date} = day;
@@ -23,10 +21,10 @@ const createDayTemplate = (day) => {
   );
 };
 
-export default class Day {
+export default class Day extends AbstractComponent {
   constructor(day) {
+    super();
     this._day = day;
-    this._element = null;
   }
 
   getTemplate() {
@@ -35,22 +33,18 @@ export default class Day {
 
   getElement() {
     if (!this._element) {
-      this._element = createElementFromTemplate(this.getTemplate());
+      this._element = super.getElement();
 
       const eventListElement = this._element.querySelector(`.trip-events__list`);
 
       this._day.eventComponents.forEach((eventComponent) => {
         const listItemElement = createElementFromTemplate(`<li class="trip-events__item"></li>`);
 
-        render(listItemElement, eventComponent.getElement());
+        render(listItemElement, eventComponent);
         render(eventListElement, listItemElement);
       });
     }
 
     return this._element;
-  }
-
-  removeElement() {
-    this._element = null;
   }
 }

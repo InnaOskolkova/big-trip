@@ -1,15 +1,9 @@
-import {
-  eventGroupsToEventTypes,
-  EVENT_DESTINATIONS,
-  EVENT_OFFERS
-} from "../const";
+import {eventGroupsToEventTypes, EVENT_DESTINATIONS, EVENT_OFFERS} from "../const";
 
-import {
-  getPreposition,
-  formatTime,
-  formatFullDate,
-  createElementFromTemplate
-} from "../utils";
+import {formatTime, formatFullDate} from "../utils/date";
+import {getPreposition} from "../utils/text";
+
+import AbstractComponent from "./abstract-component";
 
 const createTypeMarkup = (type, isChecked) => {
   const lowerCaseType = type.toLowerCase();
@@ -209,25 +203,17 @@ const createEditorTemplate = (event) => {
   );
 };
 
-export default class Editor {
+export default class Editor extends AbstractComponent {
   constructor(event) {
+    super();
     this._event = event;
-    this._element = null;
   }
 
   getTemplate() {
     return createEditorTemplate(this._event);
   }
 
-  getElement() {
-    if (!this._element) {
-      this._element = createElementFromTemplate(this.getTemplate());
-    }
-
-    return this._element;
-  }
-
-  removeElement() {
-    this._element = null;
+  setSubmitHandler(handler) {
+    this.getElement().addEventListener(`submit`, handler);
   }
 }

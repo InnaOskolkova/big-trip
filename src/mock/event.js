@@ -14,9 +14,10 @@ import {
   getRandomIntegerFromRangeIncludingMax,
   getRandomIntegerIncludingMax,
   getRandomElement,
-  getRandomElements,
-  splitTextIntoSentences
-} from "../utils";
+  getRandomElements
+} from "../utils/common";
+
+import {splitTextIntoSentences} from "../utils/text";
 
 const generateDescription = () => {
   const sentences = splitTextIntoSentences(EVENT_DESCRIPTION);
