@@ -41,7 +41,7 @@ export default class Day extends AbstractComponent {
         const listItemElement = createElementFromTemplate(`<li class="trip-events__item"></li>`);
 
         render(listItemElement, eventComponent);
-        eventListElement.appendChild(listItemElement);
+        render(eventListElement, listItemElement);
       });
     }
 
