@@ -20,9 +20,13 @@ export const FILTERS = [`everything`, `future`, `past`];
 export const DEFAULT_FILTER = `everything`;
 
 // Константы сортировки
-export const SORTS = [`event`, `time`, `price`];
+export const SortType = {
+  EVENT: `event`,
+  TIME: `time`,
+  PRICE: `price`
+};
 
-export const DEFAULT_SORT = `event`;
+export const DEFAULT_SORT_TYPE = SortType.EVENT;
 
 // Константы событий
 export const eventGroupsToEventTypes = {
