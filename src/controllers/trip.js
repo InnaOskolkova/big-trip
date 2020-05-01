@@ -1,12 +1,13 @@
-import {groupBy} from "../utils/common";
+import {DEFAULT_SORT_TYPE} from "../const";
+
 import {render, replace} from "../utils/dom";
 import {checkEscKey} from "../utils/keyboard";
-import {formatISODate} from "../utils/date";
+import {groupEventsByBeginDate, sortEvents} from "../utils/event";
 
 import NoEventsMessageComponent from "../components/no-events-message";
 import SortComponent from "../components/sort";
-import DayListComponent from "../components/day-list";
-import DayComponent from "../components/day";
+import EventListComponent from "../components/event-list";
+import EventGroupComponent from "../components/event-group";
 import EventComponent from "../components/event";
 import EditorComponent from "../components/editor";
 
@@ -40,7 +41,7 @@ export default class TripController {
 
     this._noEventsMessageComponent = new NoEventsMessageComponent();
     this._sortComponent = new SortComponent();
-    this._dayListComponent = new DayListComponent();
+    this._eventListComponent = new EventListComponent();
   }
 
   render(events) {
@@ -50,24 +51,48 @@ export default class TripController {
     }
 
     render(this._container, this._sortComponent);
-    render(this._container, this._dayListComponent);
+    render(this._container, this._eventListComponent);
 
-    const groupedByDateEvents = groupBy(events, (event) => formatISODate(event.beginDate));
+    this._renderGroupedEvents(groupEventsByBeginDate(events));
 
-    Object.entries(groupedByDateEvents).forEach(([dateString, groupedEvents], i) => {
-      const eventComponents = [];
+    const sortTypeChangeHandler = (sortType) => {
+      this._eventListComponent.clear();
 
-      groupedEvents.forEach((event) => {
-        const eventComponent = new EventComponent(event);
-        linkEventToEditor(eventComponent, new EditorComponent(event));
-        eventComponents.push(eventComponent);
-      });
+      if (sortType === DEFAULT_SORT_TYPE) {
+        this._renderGroupedEvents(groupEventsByBeginDate(events));
+      } else {
+        this._renderSortedEvents(sortEvents(events, sortType));
+      }
+    };
 
-      render(this._dayListComponent, new DayComponent({
+    this._sortComponent.setTypeChangeHandler(sortTypeChangeHandler);
+  }
+
+  _renderGroupedEvents(groupedEvents) {
+    Object.entries(groupedEvents).forEach(([dateString, events], i) => {
+      render(this._eventListComponent, new EventGroupComponent({
         number: i + 1,
         date: new Date(dateString),
-        eventComponents
+        eventComponents: this._createEventComponents(events)
       }));
     });
+  }
+
+  _renderSortedEvents(sortedEvents) {
+    render(this._eventListComponent, new EventGroupComponent({
+      eventComponents: this._createEventComponents(sortedEvents)
+    }));
+  }
+
+  _createEventComponents(events) {
+    const eventComponents = [];
+
+    events.forEach((event) => {
+      const eventComponent = new EventComponent(event);
+      linkEventToEditor(eventComponent, new EditorComponent(event));
+      eventComponents.push(eventComponent);
+    });
+
+    return eventComponents;
   }
 }
