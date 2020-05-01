@@ -70,31 +70,29 @@ export default class TripController {
 
   _renderGroupedEvents(groupedEvents) {
     Object.entries(groupedEvents).forEach(([dateString, events], i) => {
-      const eventComponents = [];
-
-      events.forEach((event) => {
-        const eventComponent = new EventComponent(event);
-        linkEventToEditor(eventComponent, new EditorComponent(event));
-        eventComponents.push(eventComponent);
-      });
-
       render(this._eventListComponent, new EventGroupComponent({
         number: i + 1,
         date: new Date(dateString),
-        eventComponents
+        eventComponents: this._createEventComponents(events)
       }));
     });
   }
 
   _renderSortedEvents(sortedEvents) {
+    render(this._eventListComponent, new EventGroupComponent({
+      eventComponents: this._createEventComponents(sortedEvents)
+    }));
+  }
+
+  _createEventComponents(events) {
     const eventComponents = [];
 
-    sortedEvents.forEach((event) => {
+    events.forEach((event) => {
       const eventComponent = new EventComponent(event);
       linkEventToEditor(eventComponent, new EditorComponent(event));
       eventComponents.push(eventComponent);
     });
 
-    render(this._eventListComponent, new EventGroupComponent({eventComponents}));
+    return eventComponents;
   }
 }
