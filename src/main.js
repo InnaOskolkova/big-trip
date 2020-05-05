@@ -8,6 +8,8 @@ import FilterComponent from "./components/filter";
 
 import TripController from "./controllers/trip";
 
+import {generateDestinations} from "./mock/destination";
+import {generateOffers} from "./mock/offer";
 import {generateEvents} from "./mock/event";
 
 const mainElement = document.querySelector(`.trip-main`);
@@ -18,7 +20,9 @@ render(mainElement, new InfoComponent(), RenderPosition.AFTERBEGIN);
 render(controlsElement, new MenuComponent());
 render(controlsElement, new FilterComponent());
 
-const events = generateEvents();
+const destinations = generateDestinations();
+const typesToOffers = generateOffers();
+const events = generateEvents(destinations, typesToOffers);
 
-const tripController = new TripController(eventListElement);
+const tripController = new TripController(eventListElement, destinations, typesToOffers);
 tripController.render(events);

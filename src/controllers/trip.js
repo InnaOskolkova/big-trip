@@ -36,8 +36,11 @@ const linkEventToEditor = (eventComponent, editorComponent) => {
 };
 
 export default class TripController {
-  constructor(container) {
+  constructor(container, destinations, typesToOffers) {
     this._container = container;
+
+    this._destinations = destinations;
+    this._typesToOffers = typesToOffers;
 
     this._noEventsMessageComponent = new NoEventsMessageComponent();
     this._sortComponent = new SortComponent();
@@ -89,7 +92,7 @@ export default class TripController {
 
     events.forEach((event) => {
       const eventComponent = new EventComponent(event);
-      linkEventToEditor(eventComponent, new EditorComponent(event));
+      linkEventToEditor(eventComponent, new EditorComponent(event, this._destinations, this._typesToOffers));
       eventComponents.push(eventComponent);
     });
 

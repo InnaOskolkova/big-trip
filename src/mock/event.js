@@ -1,56 +1,47 @@
-import {
-  EVENT_TYPES,
-  EVENT_DESTINATIONS,
-  EventDurationLimit,
-  EVENT_MAX_PRICE,
-  EVENT_OFFERS,
-  EVENT_DESCRIPTION,
-  EVENT_MAX_DESCRIPTION_LENGTH,
-  EventPhotoAmountLimit,
-  EVENT_AMOUNT
-} from "../const";
+import {MILLISECONDS_PER_HOUR, MILLISECONDS_PER_DAY, EVENT_TYPES} from "../const";
 
 import {
+  getRandomBoolean,
   getRandomIntegerFromRangeIncludingMax,
   getRandomIntegerIncludingMax,
   getRandomElement,
   getRandomElements
 } from "../utils/common";
 
-import {splitTextIntoSentences} from "../utils/text";
+const EVENT_AMOUNT = 20;
 
-const generateDescription = () => {
-  const sentences = splitTextIntoSentences(EVENT_DESCRIPTION);
-  const randomSentences = getRandomElements(sentences);
-
-  return randomSentences.length ?
-    randomSentences.slice(0, EVENT_MAX_DESCRIPTION_LENGTH).join(` `) :
-    getRandomElement(sentences);
+const EventDurationLimit = {
+  MIN: MILLISECONDS_PER_HOUR / 2,
+  MAX: MILLISECONDS_PER_DAY * 2
 };
 
-const generatePhotos = () => {
-  return new Array(getRandomIntegerFromRangeIncludingMax(EventPhotoAmountLimit.MIN, EventPhotoAmountLimit.MAX))
-    .fill(``).map(() => `http://picsum.photos/248/152?r=${Math.random()}`);
-};
+const EVENT_MAX_PRICE = 1000;
 
-const generateEvent = (beginDate, endDate) => ({
-  type: getRandomElement(EVENT_TYPES),
-  destination: getRandomElement(EVENT_DESTINATIONS),
+const generateEvent = (type, destination, beginDate, endDate, offers) => ({
+  type,
+  destination,
   beginDate,
   endDate,
   price: getRandomIntegerIncludingMax(EVENT_MAX_PRICE),
-  offers: getRandomElements(EVENT_OFFERS),
-  description: generateDescription(),
-  photos: generatePhotos()
+  isFavorite: getRandomBoolean(),
+  offers
 });
 
-export const generateEvents = () => {
+export const generateEvents = (destinations, typesToOffers) => {
   let beginTime = Date.now();
 
   return new Array(EVENT_AMOUNT).fill(``).map(() => {
+    const type = getRandomElement(EVENT_TYPES);
+    const destination = getRandomElement(destinations);
+    const offers = getRandomElements(typesToOffers[type]);
+
     const duration = getRandomIntegerFromRangeIncludingMax(EventDurationLimit.MIN, EventDurationLimit.MAX);
-    const event = generateEvent(new Date(beginTime), new Date(beginTime + duration));
+
+    const beginDate = new Date(beginTime);
+    const endDate = new Date(beginTime + duration);
+
     beginTime += duration;
-    return event;
+
+    return generateEvent(type, destination, beginDate, endDate, offers);
   });
 };
