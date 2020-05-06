@@ -3,7 +3,7 @@ import {eventGroupsToEventTypes} from "../const";
 import {formatTime, formatFullDate} from "../utils/date";
 import {upperCaseFirstLetter, getPreposition, replaceChars} from "../utils/text";
 
-import AbstractComponent from "./abstract-component";
+import AbstractSmartComponent from "./abstract-smart-component";
 
 const createTypeItemMarkup = (type, isChecked) => (
   `<div class="event__type-item">
@@ -58,13 +58,13 @@ const createTypeMarkup = (checkedType) => (
   </div>`
 );
 
-const createDestinationListMarkup = (destinations) => (
+const createDestinationListMarkup = (availableDestinations) => (
   `<datalist id="destination-list">
-    ${destinations.map((destination) => `<option value="${destination.name}"></option>`).join(``)}
+    ${availableDestinations.map((destination) => `<option value="${destination.name}"></option>`).join(``)}
   </datalist>`
 );
 
-const createDestinationMarkup = (destinations, checkedDestination, type) => (
+const createDestinationMarkup = (availableDestinations, checkedDestination, type) => (
   `<div class="event__field-group event__field-group--destination">
 
     <label
@@ -80,7 +80,7 @@ const createDestinationMarkup = (destinations, checkedDestination, type) => (
       value="${checkedDestination.name}"
       list="destination-list">
 
-    ${createDestinationListMarkup(destinations)}
+    ${createDestinationListMarkup(availableDestinations)}
 
   </div>`
 );
@@ -132,6 +132,29 @@ const createPriceMarkup = (price) => (
       name="event-price"
       value="${price}">
   </div>`
+);
+
+const createFavoriteButtonMarkup = (isChecked) => (
+  `<input
+    class="event__favorite-checkbox visually-hidden"
+    id="event-favorite"
+    type="checkbox"
+    name="event-favorite"
+    ${isChecked ? `checked` : ``}>
+  <label
+    class="event__favorite-btn"
+    for="event-favorite">
+    <span class="visually-hidden">Add to favorite</span>
+    <svg class="event__favorite-icon" width="28" height="28" viewBox="0 0 28 28">
+      <path d="M14 21l-8.22899 4.3262 1.57159-9.1631L.685209 9.67376 9.8855 8.33688 14 0l4.1145 8.33688 9.2003 1.33688-6.6574 6.48934 1.5716 9.1631L14 21z"/>
+    </svg>
+  </label>`
+);
+
+const createCloseButtonMarkup = () => (
+  `<button class="event__rollup-btn" type="button">
+    <span class="visually-hidden">Open event</span>
+  </button>`
 );
 
 const createOfferMarkup = (offer, isChecked) => {
@@ -212,8 +235,8 @@ const createDetailsMarkup = (destination, availableOffers, checkedOffers) => {
 };
 
 const createEditorTemplate = (event, parameters) => {
-  const {type, destination, beginDate, endDate, price, offers} = event;
-  const {destinations, availableOffers} = parameters;
+  const {beginDate, endDate, price, isFavorite, offers} = event;
+  const {type, destination, availableDestinations, availableOffers} = parameters;
 
   return (
     `<form class="event event--edit" action="#" method="post">
@@ -221,7 +244,7 @@ const createEditorTemplate = (event, parameters) => {
       <header class="event__header">
 
         ${createTypeMarkup(type)}
-        ${createDestinationMarkup(destinations, destination, type)}
+        ${createDestinationMarkup(availableDestinations, destination, type)}
         ${createDatesMarkup(beginDate, endDate)}
         ${createPriceMarkup(price)}
 
@@ -234,8 +257,12 @@ const createEditorTemplate = (event, parameters) => {
         <button
           class="event__reset-btn"
           type="reset">
-          Cancel
+          Delete
         </button>
+
+        ${createFavoriteButtonMarkup(isFavorite)}
+
+        ${createCloseButtonMarkup()}
 
       </header>
 
@@ -245,23 +272,94 @@ const createEditorTemplate = (event, parameters) => {
   );
 };
 
-export default class Editor extends AbstractComponent {
-  constructor(event, destinations, typesToOffers) {
+export default class Editor extends AbstractSmartComponent {
+  constructor(event, availableDestinations, typesToOffers) {
     super();
 
     this._event = event;
-    this._destinations = destinations;
     this._typesToOffers = typesToOffers;
+
+    this._type = this._event.type;
+    this._destination = this._event.destination;
+    this._availableDestinations = availableDestinations;
+    this._availableOffers = this._typesToOffers[this._type];
+
+    this._submitHandler = null;
+    this._favoriteButtonClickHandler = null;
+    this._closeButtonClickHandler = null;
+    this._changeHandler = this._changeHandler.bind(this);
+
+    this._recoveryHandlers();
   }
 
   getTemplate() {
     return createEditorTemplate(this._event, {
-      destinations: this._destinations,
-      availableOffers: this._typesToOffers[this._event.type]
+      type: this._type,
+      destination: this._destination,
+      availableDestinations: this._availableDestinations,
+      availableOffers: this._availableOffers
     });
   }
 
   setSubmitHandler(handler) {
-    this.getElement().addEventListener(`submit`, handler);
+    this._submitHandler = handler;
+    this.getElement().addEventListener(`submit`, this._submitHandler);
+  }
+
+  setFavoriteButtonClickHandler(handler) {
+    this._favoriteButtonClickHandler = handler;
+    this.getElement().querySelector(`.event__favorite-btn`).addEventListener(`click`, this._favoriteButtonClickHandler);
+  }
+
+  setCloseButtonClickHandler(handler) {
+    this._closeButtonClickHandler = handler;
+    this.getElement().querySelector(`.event__rollup-btn`).addEventListener(`click`, this._closeButtonClickHandler);
+  }
+
+  reset() {
+    this._type = this._event.type;
+    this._destination = this._event.destination;
+    this._availableOffers = this._typesToOffers[this._type];
+
+    this.rerender();
+  }
+
+  _changeType(type) {
+    this._type = type;
+    this._availableOffers = this._typesToOffers[this._type];
+    this.rerender();
+  }
+
+  _changeDestination(destinationName) {
+    this._destination = this._availableDestinations.find((destination) => destination.name === destinationName);
+    this.rerender();
+  }
+
+  _changeHandler(evt) {
+    const target = evt.target;
+
+    if (target.classList.contains(`event__type-input`)) {
+      this._changeType(target.value);
+    }
+
+    if (target.classList.contains(`event__input--destination`)) {
+      this._changeDestination(target.value);
+    }
+  }
+
+  _recoveryHandlers() {
+    if (this._submitHandler) {
+      this.setSubmitHandler(this._submitHandler);
+    }
+
+    if (this._favoriteButtonClickHandler) {
+      this.setFavoriteButtonClickHandler(this._favoriteButtonClickHandler);
+    }
+
+    if (this._closeButtonClickHandler) {
+      this.setCloseButtonClickHandler(this._closeButtonClickHandler);
+    }
+
+    this.getElement().addEventListener(`change`, this._changeHandler);
   }
 }
