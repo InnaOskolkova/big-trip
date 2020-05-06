@@ -31,7 +31,7 @@ const createEventGroupTemplate = (eventGroup) => {
 };
 
 export default class EventGroup extends AbstractComponent {
-  constructor(eventGroup) {
+  constructor(eventGroup = {}) {
     super();
     this._eventGroup = eventGroup;
   }
@@ -40,20 +40,11 @@ export default class EventGroup extends AbstractComponent {
     return createEventGroupTemplate(this._eventGroup);
   }
 
-  getElement() {
-    if (!this._element) {
-      super.getElement();
+  renderEvent(eventComponent) {
+    const eventListElement = this.getElement().querySelector(`.trip-events__list`);
+    const listItemElement = createElementFromTemplate(`<li class="trip-events__item"></li>`);
 
-      const eventListElement = this._element.querySelector(`.trip-events__list`);
-
-      this._eventGroup.eventComponents.forEach((eventComponent) => {
-        const listItemElement = createElementFromTemplate(`<li class="trip-events__item"></li>`);
-
-        render(listItemElement, eventComponent);
-        render(eventListElement, listItemElement);
-      });
-    }
-
-    return this._element;
+    render(listItemElement, eventComponent);
+    render(eventListElement, listItemElement);
   }
 }
