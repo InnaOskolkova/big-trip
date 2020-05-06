@@ -42,3 +42,8 @@ export const EVENT_TYPES = [
 ];
 
 export const EVENT_MAX_RENDERED_OFFER_AMOUNT = 3;
+
+export const EventViewMode = {
+  DEFAULT: `default`,
+  EDITOR: `editor`
+};
