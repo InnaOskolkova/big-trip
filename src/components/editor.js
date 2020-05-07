@@ -1,3 +1,7 @@
+import flatpickr from "flatpickr";
+import "flatpickr/dist/flatpickr.min.css";
+import "flatpickr/dist/themes/material_blue.css";
+
 import {eventGroupsToEventTypes} from "../const";
 
 import {formatTime, formatFullDate} from "../utils/date";
@@ -289,7 +293,11 @@ export default class Editor extends AbstractSmartComponent {
     this._closeButtonClickHandler = null;
     this._changeHandler = this._changeHandler.bind(this);
 
+    this._beginDatePicker = null;
+    this._endDatePicker = null;
+
     this._recoveryHandlers();
+    this._createDatePickers();
   }
 
   getTemplate() {
@@ -299,6 +307,11 @@ export default class Editor extends AbstractSmartComponent {
       availableDestinations: this._availableDestinations,
       availableOffers: this._availableOffers
     });
+  }
+
+  rerender() {
+    super.rerender();
+    this._createDatePickers();
   }
 
   setSubmitHandler(handler) {
@@ -361,5 +374,27 @@ export default class Editor extends AbstractSmartComponent {
     }
 
     this.getElement().addEventListener(`change`, this._changeHandler);
+  }
+
+  _createDatePicker(dateElement, defaultDate) {
+    return flatpickr(dateElement, {
+      enableTime: true,
+      defaultDate: defaultDate || new Date(),
+      altInput: true,
+      altFormat: `d/m/y H:i`
+    });
+  }
+
+  _createDatePickers() {
+    if (this._beginDatePicker) {
+      this._beginDatePicker.destroy();
+      this._endDatePicker.destroy();
+    }
+
+    const beginDateElement = this.getElement().querySelector(`#event-start-time`);
+    const endDateElement = this.getElement().querySelector(`#event-end-time`);
+
+    this._beginDatePicker = this._createDatePicker(beginDateElement, this._event.beginDate);
+    this._endDatePicker = this._createDatePicker(endDateElement, this._event.endDate);
   }
 }
