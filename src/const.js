@@ -1,12 +1,4 @@
 // Служебные константы
-export const MONTHS = [`Jan`, `Feb`, `Mar`, `Apr`, `May`, `Jun`, `Jul`, `Aug`, `Sep`, `Oct`, `Nov`, `Dec`];
-
-export const MILLISECONDS_PER_MINUTE = 60000;
-
-export const MILLISECONDS_PER_HOUR = MILLISECONDS_PER_MINUTE * 60;
-
-export const MILLISECONDS_PER_DAY = MILLISECONDS_PER_HOUR * 24;
-
 export const RenderPosition = {
   AFTERBEGIN: `afterbegin`,
   BEFOREEND: `beforeend`

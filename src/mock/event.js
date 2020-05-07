@@ -1,4 +1,4 @@
-import {MILLISECONDS_PER_HOUR, MILLISECONDS_PER_DAY, EVENT_TYPES} from "../const";
+import {EVENT_TYPES} from "../const";
 
 import {
   getRandomBoolean,
@@ -9,6 +9,12 @@ import {
 } from "../utils/common";
 
 const EVENT_AMOUNT = 20;
+
+const MILLISECONDS_PER_MINUTE = 60000;
+
+const MILLISECONDS_PER_HOUR = MILLISECONDS_PER_MINUTE * 60;
+
+const MILLISECONDS_PER_DAY = MILLISECONDS_PER_HOUR * 24;
 
 const EventDurationLimit = {
   MIN: MILLISECONDS_PER_HOUR / 2,
