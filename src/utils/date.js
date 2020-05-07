@@ -1,41 +1,21 @@
-import {MONTHS, MILLISECONDS_PER_MINUTE, MILLISECONDS_PER_HOUR, MILLISECONDS_PER_DAY} from "../const";
+import moment from "moment";
 
 const formatDateUnit = (unit) => String(unit).slice(-2).padStart(2, `0`);
 
-export const formatTime = (date) => `${formatDateUnit(date.getHours())}:${formatDateUnit(date.getMinutes())}`;
+export const formatTime = (date) => moment(date).format(`HH:mm`);
 
-export const formatDate = (date) => `${MONTHS[date.getMonth()]} ${date.getDate()}`;
+export const formatDate = (date) => moment(date).format(`MMM D`);
 
-export const formatFullDate = (date) => (
-  `${
-    formatDateUnit(date.getDate())
-  }/${
-    formatDateUnit(date.getMonth() + 1)
-  }/${
-    formatDateUnit(date.getFullYear())
-  }`
-);
+export const formatFullDate = (date) => moment(date).format(`DD/MM/YY`);
 
-export const formatISODate = (date) => (
-  `${
-    date.getFullYear()
-  }-${
-    formatDateUnit(date.getMonth() + 1)
-  }-${
-    formatDateUnit(date.getDate())
-  }`
-);
+export const formatISODate = (date) => moment(date).format(`YYYY-MM-DD`);
 
 export const formatDuration = (beginDate, endDate) => {
-  let duration = endDate - beginDate;
+  const duration = moment.duration(endDate - beginDate);
 
-  const dayAmount = Math.floor(duration / MILLISECONDS_PER_DAY);
-  duration %= MILLISECONDS_PER_DAY;
-
-  const hourAmount = Math.floor(duration / MILLISECONDS_PER_HOUR);
-  duration %= MILLISECONDS_PER_HOUR;
-
-  const minuteAmount = Math.floor(duration / MILLISECONDS_PER_MINUTE);
+  const dayAmount = duration.days();
+  const hourAmount = duration.hours();
+  const minuteAmount = duration.minutes();
 
   return (
     `${
