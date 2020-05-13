@@ -6,8 +6,8 @@ import EventsModel from "./models/events";
 
 import InfoComponent from "./components/info";
 import MenuComponent from "./components/menu";
-import FilterComponent from "./components/filter";
 
+import FilterController from "./controllers/filter";
 import TripController from "./controllers/trip";
 
 import {generateDestinations} from "./mock/destination";
@@ -20,13 +20,15 @@ const eventListElement = document.querySelector(`.trip-events`);
 
 render(mainElement, new InfoComponent(), RenderPosition.AFTERBEGIN);
 render(controlsElement, new MenuComponent());
-render(controlsElement, new FilterComponent());
 
 const destinations = generateDestinations();
 const typesToOffers = generateOffers();
 
 const eventsModel = new EventsModel();
 eventsModel.setEvents(generateEvents(destinations, typesToOffers));
+
+const filterController = new FilterController(controlsElement, eventsModel);
+filterController.render();
 
 const tripController = new TripController(eventListElement, eventsModel, destinations, typesToOffers);
 tripController.render();

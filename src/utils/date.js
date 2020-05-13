@@ -27,3 +27,7 @@ export const formatDuration = (beginDate, endDate) => {
     }`
   ).trim();
 };
+
+export const checkIfPast = (date) => date < Date.now();
+
+export const checkIfFuture = (date) => date > Date.now();

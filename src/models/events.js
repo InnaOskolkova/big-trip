@@ -1,15 +1,18 @@
-import {DEFAULT_SORT_TYPE} from "../const";
+import {DEFAULT_FILTER_TYPE, DEFAULT_SORT_TYPE} from "../const";
 
 import {groupEventsByBeginDate} from "../utils/event";
+import {filterEvents} from "../utils/filter";
 import {sortEvents} from "../utils/sort";
 
 export default class Events {
   constructor() {
     this._events = [];
 
+    this._filterType = DEFAULT_FILTER_TYPE;
     this._sortType = DEFAULT_SORT_TYPE;
 
     this._dataChangeHandlers = [];
+    this._filterTypeChangeHandlers = [];
   }
 
   setEvents(events) {
@@ -21,15 +24,17 @@ export default class Events {
       return [];
     }
 
+    const filteredEvents = filterEvents(this._events, this._filterType);
+
     if (this._sortType === DEFAULT_SORT_TYPE) {
-      return Object.entries(groupEventsByBeginDate(this._events)).map(([dateString, events], i) => ({
+      return Object.entries(groupEventsByBeginDate(filteredEvents)).map(([dateString, events], i) => ({
         number: i + 1,
         date: new Date(dateString),
         events
       }));
     }
 
-    return [{events: sortEvents(this._events, this._sortType)}];
+    return [{events: sortEvents(filteredEvents, this._sortType)}];
   }
 
   getAllEvents() {
@@ -42,12 +47,21 @@ export default class Events {
     this._callHandlers(this._dataChangeHandlers);
   }
 
+  setFilterType(filterType) {
+    this._filterType = filterType;
+    this._callHandlers(this._filterTypeChangeHandlers);
+  }
+
   setSortType(sortType) {
     this._sortType = sortType;
   }
 
   setDataChangeHandler(handler) {
     this._dataChangeHandlers.push(handler);
+  }
+
+  setFilterTypeChangeHandler(handler) {
+    this._filterTypeChangeHandlers.push(handler);
   }
 
   _callHandlers(handlers) {

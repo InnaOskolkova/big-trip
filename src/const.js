@@ -7,9 +7,13 @@ export const RenderPosition = {
 export const ESC_KEY = `Escape`;
 
 // Константы фильтров
-export const FILTERS = [`everything`, `future`, `past`];
+export const FilterType = {
+  EVERYTHING: `everything`,
+  FUTURE: `future`,
+  PAST: `past`
+};
 
-export const DEFAULT_FILTER = `everything`;
+export const DEFAULT_FILTER_TYPE = FilterType.EVERYTHING;
 
 // Константы сортировки
 export const SortType = {

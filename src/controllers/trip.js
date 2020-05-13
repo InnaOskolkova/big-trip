@@ -1,3 +1,5 @@
+import {DEFAULT_SORT_TYPE} from "../const";
+
 import {render} from "../utils/dom";
 
 import NoEventsMessageComponent from "../components/no-events-message";
@@ -23,8 +25,10 @@ export default class TripController {
     this._createEventControllers = this._createEventControllers.bind(this);
     this._dataChangeHandler = this._dataChangeHandler.bind(this);
     this._viewChangeHandler = this._viewChangeHandler.bind(this);
+    this._filterTypeChangeHandler = this._filterTypeChangeHandler.bind(this);
     this._sortTypeChangeHandler = this._sortTypeChangeHandler.bind(this);
 
+    this._eventsModel.setFilterTypeChangeHandler(this._filterTypeChangeHandler);
     this._sortComponent.setTypeChangeHandler(this._sortTypeChangeHandler);
   }
 
@@ -72,6 +76,12 @@ export default class TripController {
 
   _viewChangeHandler() {
     this._eventControllers.forEach((eventController) => eventController.setDefaultView());
+  }
+
+  _filterTypeChangeHandler() {
+    this._sortComponent.setDefaultType();
+    this._eventsModel.setSortType(DEFAULT_SORT_TYPE);
+    this._rerenderEvents();
   }
 
   _sortTypeChangeHandler(sortType) {
