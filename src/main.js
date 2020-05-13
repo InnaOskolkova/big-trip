@@ -2,6 +2,8 @@ import {RenderPosition} from "./const";
 
 import {render} from "./utils/dom";
 
+import EventsModel from "./models/events";
+
 import InfoComponent from "./components/info";
 import MenuComponent from "./components/menu";
 import FilterComponent from "./components/filter";
@@ -22,7 +24,9 @@ render(controlsElement, new FilterComponent());
 
 const destinations = generateDestinations();
 const typesToOffers = generateOffers();
-const events = generateEvents(destinations, typesToOffers);
 
-const tripController = new TripController(eventListElement, destinations, typesToOffers);
-tripController.render(events);
+const eventsModel = new EventsModel();
+eventsModel.setEvents(generateEvents(destinations, typesToOffers));
+
+const tripController = new TripController(eventListElement, eventsModel, destinations, typesToOffers);
+tripController.render();

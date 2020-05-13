@@ -23,7 +23,8 @@ const EventDurationLimit = {
 
 const EVENT_MAX_PRICE = 1000;
 
-const generateEvent = (type, destination, beginDate, endDate, offers) => ({
+const generateEvent = (id, type, destination, beginDate, endDate, offers) => ({
+  id,
   type,
   destination,
   beginDate,
@@ -34,9 +35,12 @@ const generateEvent = (type, destination, beginDate, endDate, offers) => ({
 });
 
 export const generateEvents = (destinations, typesToOffers) => {
+  let currentEventAmount = 0;
   let beginTime = Date.now();
 
   return new Array(EVENT_AMOUNT).fill(``).map(() => {
+    currentEventAmount++;
+
     const type = getRandomElement(EVENT_TYPES);
     const destination = getRandomElement(destinations);
     const offers = getRandomElements(typesToOffers[type]);
@@ -48,6 +52,6 @@ export const generateEvents = (destinations, typesToOffers) => {
 
     beginTime += duration;
 
-    return generateEvent(type, destination, beginDate, endDate, offers);
+    return generateEvent(currentEventAmount, type, destination, beginDate, endDate, offers);
   });
 };

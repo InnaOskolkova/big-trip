@@ -7,15 +7,14 @@ import EventComponent from "../components/event";
 import EditorComponent from "../components/editor";
 
 export default class EventController {
-  constructor(event, destinations, typesToOffers, container, dataChangeHandler, viewChangeHandler) {
+  constructor(container, event, destinations, typesToOffers, dataChangeHandler, viewChangeHandler) {
+    this._container = container;
     this._event = event;
-    this._eventComponent = null;
-    this._editorComponent = null;
-
     this._destinations = destinations;
     this._typesToOffers = typesToOffers;
 
-    this._container = container;
+    this._eventComponent = null;
+    this._editorComponent = null;
 
     this._dataChangeHandler = dataChangeHandler;
     this._viewChangeHandler = viewChangeHandler;
