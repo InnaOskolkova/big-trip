@@ -22,12 +22,12 @@ const createSortMarkup = (sort, isChecked) => (
   </div>`
 );
 
-const createSortTemplate = () => (
+const createSortTemplate = (checkedSort) => (
   `<form class="trip-events__trip-sort trip-sort" action="#" method="get">
 
     <span class="trip-sort__item trip-sort__item--day">Day</span>
 
-    ${Object.values(SortType).map((sort) => createSortMarkup(sort, sort === DEFAULT_SORT_TYPE)).join(``)}
+    ${Object.values(SortType).map((sort) => createSortMarkup(sort, sort === checkedSort)).join(``)}
 
     <span class="trip-sort__item trip-sort__item--offers">Offers</span>
 
@@ -37,11 +37,12 @@ const createSortTemplate = () => (
 export default class Sort extends AbstractComponent {
   constructor() {
     super();
+    this._type = DEFAULT_SORT_TYPE;
     this._typeChangeHandler = null;
   }
 
   getTemplate() {
-    return createSortTemplate();
+    return createSortTemplate(this._type);
   }
 
   getElement() {
@@ -50,12 +51,12 @@ export default class Sort extends AbstractComponent {
       const dayItemElement = this._element.querySelector(`.trip-sort__item--day`);
 
       this._element.addEventListener(`change`, (evt) => {
-        const type = evt.target.value;
+        this._type = evt.target.value;
 
-        dayItemElement.textContent = type === SortType.EVENT ? `Day` : ``;
+        dayItemElement.textContent = this._type === SortType.EVENT ? `Day` : ``;
 
         if (this._typeChangeHandler) {
-          this._typeChangeHandler(type);
+          this._typeChangeHandler(this._type);
         }
       });
     }
@@ -64,7 +65,8 @@ export default class Sort extends AbstractComponent {
   }
 
   setDefaultType() {
-    this.getElement().querySelector(`[value="${DEFAULT_SORT_TYPE}"]`).checked = true;
+    this._type = DEFAULT_SORT_TYPE;
+    this.getElement().querySelector(`[value="${this._type}"]`).checked = true;
   }
 
   setTypeChangeHandler(handler) {

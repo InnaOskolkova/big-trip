@@ -16,7 +16,7 @@ import {generateEvents} from "./mock/event";
 
 const mainElement = document.querySelector(`.trip-main`);
 const controlsElement = mainElement.querySelector(`.trip-controls`);
-const eventListElement = document.querySelector(`.trip-events`);
+const eventListElement = document.querySelector(`.trip-events__container`);
 
 render(mainElement, new InfoComponent(), RenderPosition.AFTERBEGIN);
 render(controlsElement, new MenuComponent());
@@ -32,3 +32,8 @@ filterController.render();
 
 const tripController = new TripController(eventListElement, eventsModel, destinations, typesToOffers);
 tripController.render();
+
+document.querySelector(`.trip-main__event-add-btn`).addEventListener(`click`, () => {
+  filterController.setDefaultType();
+  tripController.createEvent();
+});

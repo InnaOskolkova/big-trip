@@ -8,17 +8,15 @@ import {
   getRandomElements
 } from "../utils/common";
 
-const EVENT_AMOUNT = 20;
+const EVENT_AMOUNT = 4;
 
 const MILLISECONDS_PER_MINUTE = 60000;
 
 const MILLISECONDS_PER_HOUR = MILLISECONDS_PER_MINUTE * 60;
 
-const MILLISECONDS_PER_DAY = MILLISECONDS_PER_HOUR * 24;
-
 const EventDurationLimit = {
   MIN: MILLISECONDS_PER_HOUR / 2,
-  MAX: MILLISECONDS_PER_DAY * 2
+  MAX: MILLISECONDS_PER_HOUR * 10
 };
 
 const EVENT_MAX_PRICE = 1000;

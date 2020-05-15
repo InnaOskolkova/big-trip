@@ -13,3 +13,5 @@ export const getPreposition = (eventType) => {
 };
 
 export const replaceChars = (string, oldChar, newChar) => string.split(oldChar).join(newChar);
+
+export const checkIfNonNegativeNumericString = (string) => !isNaN(string) && parseFloat(string) >= 0;

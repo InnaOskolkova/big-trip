@@ -41,9 +41,20 @@ export default class Events {
     return this._events;
   }
 
+  addEvent(event) {
+    this._events = [event, ...this._events];
+    this._callHandlers(this._dataChangeHandlers);
+  }
+
   updateEvent(id, newEvent) {
     const index = this._events.findIndex((event) => event.id === id);
     this._events = [...this._events.slice(0, index), newEvent, ...this._events.slice(index + 1)];
+    this._callHandlers(this._dataChangeHandlers);
+  }
+
+  deleteEvent(id) {
+    const index = this._events.findIndex((event) => event.id === id);
+    this._events = [...this._events.slice(0, index), ...this._events.slice(index + 1)];
     this._callHandlers(this._dataChangeHandlers);
   }
 

@@ -6,8 +6,4 @@ export default class EventList extends AbstractComponent {
   getTemplate() {
     return createEventListTemplate();
   }
-
-  clear() {
-    this.getElement().innerHTML = ``;
-  }
 }
