@@ -7,9 +7,13 @@ export const RenderPosition = {
 export const ESC_KEY = `Escape`;
 
 // Константы фильтров
-export const FILTERS = [`everything`, `future`, `past`];
+export const FilterType = {
+  EVERYTHING: `everything`,
+  FUTURE: `future`,
+  PAST: `past`
+};
 
-export const DEFAULT_FILTER = `everything`;
+export const DEFAULT_FILTER_TYPE = FilterType.EVERYTHING;
 
 // Константы сортировки
 export const SortType = {
@@ -28,6 +32,8 @@ export const eventGroupsToEventTypes = {
 
 export const eventGroupsToPrepositions = {transfer: `to`, activity: `in`};
 
+export const DEFAULT_EVENT_TYPE = `taxi`;
+
 // Этот список нужен только для моковых данных
 export const EVENT_TYPES = [
   `taxi`, `bus`, `train`, `ship`, `transport`, `drive`, `flight`, `check-in`, `sightseeing`, `restaurant`
@@ -37,5 +43,6 @@ export const EVENT_MAX_RENDERED_OFFER_AMOUNT = 3;
 
 export const EventViewMode = {
   DEFAULT: `default`,
-  EDITOR: `editor`
+  EDITOR: `editor`,
+  CREATOR: `creator`
 };

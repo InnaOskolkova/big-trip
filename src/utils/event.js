@@ -1,22 +1,10 @@
-import {SortType} from "../const";
-
 import {groupBy} from "./common";
-import {formatISODate} from "./date";
+import {formatISODate, checkIfPast, checkIfFuture} from "./date";
+
+export const getEventDuration = (event) => event.endDate - event.beginDate;
 
 export const groupEventsByBeginDate = (events) => groupBy(events, (event) => formatISODate(event.beginDate));
 
-export const sortEvents = (events, sortType) => {
-  const eventsCopy = [...events];
-  let sortedEvents;
+export const checkIfPastEvent = (event) => checkIfPast(event.endDate);
 
-  switch (sortType) {
-    case SortType.TIME:
-      sortedEvents = eventsCopy.sort((a, b) => b.beginDate - a.beginDate);
-      break;
-    case SortType.PRICE:
-      sortedEvents = eventsCopy.sort((a, b) => b.price - a.price);
-      break;
-  }
-
-  return sortedEvents;
-};
+export const checkIfFutureEvent = (event) => checkIfFuture(event.beginDate);

@@ -2,10 +2,10 @@ import flatpickr from "flatpickr";
 import "flatpickr/dist/flatpickr.min.css";
 import "flatpickr/dist/themes/material_blue.css";
 
-import {eventGroupsToEventTypes} from "../const";
+import {eventGroupsToEventTypes, EventViewMode} from "../const";
 
-import {formatTime, formatFullDate} from "../utils/date";
-import {upperCaseFirstLetter, getPreposition, replaceChars} from "../utils/text";
+import {compareDates, getMaxDate} from "../utils/date";
+import {upperCaseFirstLetter, getPreposition, replaceChars, checkIfNonNegativeNumericString} from "../utils/text";
 
 import AbstractSmartComponent from "./abstract-smart-component";
 
@@ -68,7 +68,7 @@ const createDestinationListMarkup = (availableDestinations) => (
   </datalist>`
 );
 
-const createDestinationMarkup = (availableDestinations, checkedDestination, type) => (
+const createDestinationMarkup = (availableDestinations, destinationName, type) => (
   `<div class="event__field-group event__field-group--destination">
 
     <label
@@ -81,7 +81,7 @@ const createDestinationMarkup = (availableDestinations, checkedDestination, type
       id="event-destination"
       type="text"
       name="event-destination"
-      value="${checkedDestination.name}"
+      value="${destinationName}"
       list="destination-list">
 
     ${createDestinationListMarkup(availableDestinations)}
@@ -89,7 +89,7 @@ const createDestinationMarkup = (availableDestinations, checkedDestination, type
   </div>`
 );
 
-const createDatesMarkup = (beginDate, endDate) => (
+const createDatesMarkup = () => (
   `<div class="event__field-group event__field-group--time">
 
     <label
@@ -101,8 +101,7 @@ const createDatesMarkup = (beginDate, endDate) => (
       class="event__input event__input--time"
       id="event-start-time"
       type="text"
-      name="event-start-time"
-      value="${formatFullDate(beginDate)} ${formatTime(beginDate)}">
+      name="event-start-time">
 
     &mdash;
 
@@ -115,8 +114,7 @@ const createDatesMarkup = (beginDate, endDate) => (
       class="event__input event__input--time"
       id="event-end-time"
       type="text"
-      name="event-end-time"
-      value="${formatFullDate(endDate)} ${formatTime(endDate)}">
+      name="event-end-time">
 
   </div>`
 );
@@ -132,9 +130,10 @@ const createPriceMarkup = (price) => (
     <input
       class="event__input event__input--price"
       id="event-price"
-      type="text"
+      type="number"
       name="event-price"
-      value="${price}">
+      value="${price}"
+      min="0">
   </div>`
 );
 
@@ -162,22 +161,24 @@ const createCloseButtonMarkup = () => (
 );
 
 const createOfferMarkup = (offer, isChecked) => {
-  const dashedOfferName = replaceChars(offer.name, ` `, `-`);
+  const {name, price} = offer;
+  const dashedName = replaceChars(name, ` `, `-`);
 
   return (
     `<div class="event__offer-selector">
       <input
         class="event__offer-checkbox visually-hidden"
-        id="event-offer-${dashedOfferName}"
+        id="event-offer-${dashedName}"
         type="checkbox"
-        name="event-offer-${dashedOfferName}"
+        name="event-offer-${dashedName}"
+        value="${name}"
         ${isChecked ? `checked` : ``}>
       <label
         class="event__offer-label"
-        for="event-offer-${dashedOfferName}">
-        <span class="event__offer-title">${offer.name}</span>
+        for="event-offer-${dashedName}">
+        <span class="event__offer-title">${name}</span>
         &plus;
-        &euro;&nbsp;<span class="event__offer-price">${offer.price}</span>
+        &euro;&nbsp;<span class="event__offer-price">${price}</span>
       </label>
     </div>`
   );
@@ -239,17 +240,20 @@ const createDetailsMarkup = (destination, availableOffers, checkedOffers) => {
 };
 
 const createEditorTemplate = (event, parameters) => {
-  const {beginDate, endDate, price, isFavorite, offers} = event;
-  const {type, destination, availableDestinations, availableOffers} = parameters;
+  const {type, destination, isFavorite, offers} = event;
+  const {viewMode, destinationName, price, availableDestinations, availableOffers} = parameters;
 
   return (
-    `<form class="event event--edit" action="#" method="post">
+    `<form
+      class="${viewMode === EventViewMode.CREATOR ? `trip-events__item` : ``} event event--edit"
+      action="#"
+      method="post">
 
       <header class="event__header">
 
         ${createTypeMarkup(type)}
-        ${createDestinationMarkup(availableDestinations, destination, type)}
-        ${createDatesMarkup(beginDate, endDate)}
+        ${createDestinationMarkup(availableDestinations, destinationName, type)}
+        ${createDatesMarkup()}
         ${createPriceMarkup(price)}
 
         <button
@@ -261,12 +265,12 @@ const createEditorTemplate = (event, parameters) => {
         <button
           class="event__reset-btn"
           type="reset">
-          Delete
+          ${viewMode === EventViewMode.EDITOR ? `Delete` : `Cancel`}
         </button>
 
-        ${createFavoriteButtonMarkup(isFavorite)}
+        ${viewMode === EventViewMode.EDITOR ? createFavoriteButtonMarkup(isFavorite) : ``}
 
-        ${createCloseButtonMarkup()}
+        ${viewMode === EventViewMode.EDITOR ? createCloseButtonMarkup() : ``}
 
       </header>
 
@@ -277,36 +281,49 @@ const createEditorTemplate = (event, parameters) => {
 };
 
 export default class Editor extends AbstractSmartComponent {
-  constructor(event, availableDestinations, typesToOffers) {
+  constructor(event, availableDestinations, typesToOffers, viewMode = EventViewMode.EDITOR) {
     super();
 
     this._event = event;
-    this._typesToOffers = typesToOffers;
-
-    this._type = this._event.type;
-    this._destination = this._event.destination;
+    this._eventCopy = Object.assign({}, this._event);
     this._availableDestinations = availableDestinations;
-    this._availableOffers = this._typesToOffers[this._type];
+    this._typesToOffers = typesToOffers;
+    this._viewMode = viewMode;
 
-    this._submitHandler = null;
-    this._favoriteButtonClickHandler = null;
-    this._closeButtonClickHandler = null;
-    this._changeHandler = this._changeHandler.bind(this);
+    this._destinationName = this._eventCopy.destination.name;
+    this._priceString = String(this._eventCopy.price);
 
     this._beginDatePicker = null;
     this._endDatePicker = null;
+
+    this._submitHandler = null;
+    this._deleteButtonClickHandler = null;
+    this._closeButtonClickHandler = null;
+    this._changeHandler = this._changeHandler.bind(this);
 
     this._recoveryHandlers();
     this._createDatePickers();
   }
 
   getTemplate() {
-    return createEditorTemplate(this._event, {
-      type: this._type,
-      destination: this._destination,
+    return createEditorTemplate(this._eventCopy, {
+      viewMode: this._viewMode,
+      destinationName: this._destinationName,
+      price: this._priceString,
       availableDestinations: this._availableDestinations,
-      availableOffers: this._availableOffers
+      availableOffers: this._typesToOffers[this._eventCopy.type]
     });
+  }
+
+  removeElement() {
+    if (this._beginDatePicker) {
+      this._beginDatePicker.destroy();
+      this._beginDatePicker = null;
+      this._endDatePicker.destroy();
+      this._endDatePicker = null;
+    }
+
+    super.removeElement();
   }
 
   rerender() {
@@ -319,45 +336,106 @@ export default class Editor extends AbstractSmartComponent {
     this.getElement().addEventListener(`submit`, this._submitHandler);
   }
 
-  setFavoriteButtonClickHandler(handler) {
-    this._favoriteButtonClickHandler = handler;
-    this.getElement().querySelector(`.event__favorite-btn`).addEventListener(`click`, this._favoriteButtonClickHandler);
+  setDeleteButtonClickHandler(handler) {
+    this._deleteButtonClickHandler = handler;
+    this.getElement().querySelector(`.event__reset-btn`).addEventListener(`click`, this._deleteButtonClickHandler);
   }
 
   setCloseButtonClickHandler(handler) {
-    this._closeButtonClickHandler = handler;
-    this.getElement().querySelector(`.event__rollup-btn`).addEventListener(`click`, this._closeButtonClickHandler);
+    if (this._viewMode === EventViewMode.EDITOR) {
+      this._closeButtonClickHandler = handler;
+      this.getElement().querySelector(`.event__rollup-btn`).addEventListener(`click`, this._closeButtonClickHandler);
+    }
   }
 
   reset() {
-    this._type = this._event.type;
-    this._destination = this._event.destination;
-    this._availableOffers = this._typesToOffers[this._type];
-
+    this._eventCopy = Object.assign({}, this._event);
+    this._destinationName = this._eventCopy.destination.name;
+    this._priceString = String(this._eventCopy.price);
     this.rerender();
   }
 
+  getData() {
+    return Object.assign({}, this._eventCopy);
+  }
+
   _changeType(type) {
-    this._type = type;
-    this._availableOffers = this._typesToOffers[this._type];
+    this._eventCopy.type = type;
+    this._eventCopy.offers = [];
     this.rerender();
   }
 
   _changeDestination(destinationName) {
-    this._destination = this._availableDestinations.find((destination) => destination.name === destinationName);
-    this.rerender();
+    this._destinationName = destinationName;
+    const newDestination = this._availableDestinations.find((destination) => destination.name === this._destinationName);
+
+    if (newDestination) {
+      this._eventCopy.destination = newDestination;
+      this.rerender();
+    }
+  }
+
+  _changeDates() {
+    const beginDateElement = this.getElement().querySelector(`#event-start-time`);
+    const endDateElement = this.getElement().querySelector(`#event-end-time`);
+
+    const beginDate = new Date(beginDateElement.value);
+    const endDate = new Date(endDateElement.value);
+
+    if (!compareDates(this._eventCopy.endDate, endDate)) {
+      this._eventCopy.endDate = endDate;
+      return;
+    }
+
+    this._eventCopy.beginDate = beginDate;
+    this._eventCopy.endDate = getMaxDate([beginDate, endDate]);
+    this._endDatePicker.destroy();
+    this._endDatePicker = this._createDatePicker(endDateElement, this._eventCopy.beginDate, this._eventCopy.endDate);
+  }
+
+  _changePrice(priceString) {
+    this._priceString = priceString;
+    this._eventCopy.price = checkIfNonNegativeNumericString(this._priceString) ?
+      parseFloat(this._priceString) : this._eventCopy.price;
+  }
+
+  _changeFavoriteness() {
+    this._eventCopy.isFavorite = !this._eventCopy.isFavorite;
+  }
+
+  _changeOffers() {
+    const availableOffers = this._typesToOffers[this._eventCopy.type];
+    const checkedOfferNames = Array.from(this.getElement().querySelectorAll(`.event__offer-checkbox:checked`))
+      .map((offerCheckbox) => offerCheckbox.value);
+
+    this._eventCopy.offers = availableOffers.filter((offer) => checkedOfferNames.includes(offer.name));
+  }
+
+  _checkIfSubmitButtonDisabled() {
+    return this._availableDestinations.every((destination) => destination.name !== this._destinationName) ||
+      !checkIfNonNegativeNumericString(this._priceString);
   }
 
   _changeHandler(evt) {
     const target = evt.target;
+    const classList = target.classList;
+    const value = target.value;
 
-    if (target.classList.contains(`event__type-input`)) {
-      this._changeType(target.value);
+    if (classList.contains(`event__type-input`)) {
+      this._changeType(value);
+    } else if (classList.contains(`event__input--destination`)) {
+      this._changeDestination(value);
+    } else if (classList.contains(`event__input--time`)) {
+      this._changeDates();
+    } else if (classList.contains(`event__input--price`)) {
+      this._changePrice(value);
+    } else if (classList.contains(`event__favorite-checkbox`)) {
+      this._changeFavoriteness();
+    } else if (classList.contains(`event__offer-checkbox`)) {
+      this._changeOffers();
     }
 
-    if (target.classList.contains(`event__input--destination`)) {
-      this._changeDestination(target.value);
-    }
+    this.getElement().querySelector(`.event__save-btn`).disabled = this._checkIfSubmitButtonDisabled();
   }
 
   _recoveryHandlers() {
@@ -365,8 +443,8 @@ export default class Editor extends AbstractSmartComponent {
       this.setSubmitHandler(this._submitHandler);
     }
 
-    if (this._favoriteButtonClickHandler) {
-      this.setFavoriteButtonClickHandler(this._favoriteButtonClickHandler);
+    if (this._deleteButtonClickHandler) {
+      this.setDeleteButtonClickHandler(this._deleteButtonClickHandler);
     }
 
     if (this._closeButtonClickHandler) {
@@ -376,10 +454,11 @@ export default class Editor extends AbstractSmartComponent {
     this.getElement().addEventListener(`change`, this._changeHandler);
   }
 
-  _createDatePicker(dateElement, defaultDate) {
+  _createDatePicker(dateElement, minDate, defaultDate) {
     return flatpickr(dateElement, {
       enableTime: true,
-      defaultDate: defaultDate || new Date(),
+      minDate,
+      defaultDate,
       altInput: true,
       altFormat: `d/m/y H:i`
     });
@@ -394,7 +473,7 @@ export default class Editor extends AbstractSmartComponent {
     const beginDateElement = this.getElement().querySelector(`#event-start-time`);
     const endDateElement = this.getElement().querySelector(`#event-end-time`);
 
-    this._beginDatePicker = this._createDatePicker(beginDateElement, this._event.beginDate);
-    this._endDatePicker = this._createDatePicker(endDateElement, this._event.endDate);
+    this._beginDatePicker = this._createDatePicker(beginDateElement, null, this._eventCopy.beginDate);
+    this._endDatePicker = this._createDatePicker(endDateElement, this._eventCopy.beginDate, this._eventCopy.endDate);
   }
 }

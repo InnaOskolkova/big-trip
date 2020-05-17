@@ -1,8 +1,6 @@
-import {DEFAULT_SORT_TYPE} from "../const";
+import {RenderPosition, DEFAULT_SORT_TYPE, DEFAULT_EVENT_TYPE, EventViewMode} from "../const";
 
-import {replaceElements} from "../utils/common";
-import {render} from "../utils/dom";
-import {groupEventsByBeginDate, sortEvents} from "../utils/event";
+import {render, remove} from "../utils/dom";
 
 import NoEventsMessageComponent from "../components/no-events-message";
 import SortComponent from "../components/sort";
@@ -12,88 +10,140 @@ import EventGroupComponent from "../components/event-group";
 import EventController from "./event";
 
 export default class TripController {
-  constructor(container, destinations, typesToOffers) {
+  constructor(container, eventsModel, destinations, typesToOffers) {
     this._container = container;
-
-    this._events = null;
-    this._eventControllers = null;
-
+    this._eventsModel = eventsModel;
     this._destinations = destinations;
     this._typesToOffers = typesToOffers;
+
+    this._eventCreator = null;
+    this._eventControllers = [];
 
     this._noEventsMessageComponent = new NoEventsMessageComponent();
     this._sortComponent = new SortComponent();
     this._eventListComponent = new EventListComponent();
 
+    this._createEventControllers = this._createEventControllers.bind(this);
     this._dataChangeHandler = this._dataChangeHandler.bind(this);
     this._viewChangeHandler = this._viewChangeHandler.bind(this);
+    this._filterTypeChangeHandler = this._filterTypeChangeHandler.bind(this);
     this._sortTypeChangeHandler = this._sortTypeChangeHandler.bind(this);
+
+    this._eventsModel.setFilterTypeChangeHandler(this._filterTypeChangeHandler);
     this._sortComponent.setTypeChangeHandler(this._sortTypeChangeHandler);
   }
 
-  render(events) {
-    this._events = events;
+  render() {
+    this._clear();
 
-    if (!this._events.length) {
+    const events = this._eventsModel.getEvents();
+
+    if (events.length) {
+      render(this._container, this._sortComponent, RenderPosition.AFTERBEGIN);
+      render(this._container, this._eventListComponent);
+      events.forEach(this._createEventControllers);
+    } else if (!this._eventCreator) {
       render(this._container, this._noEventsMessageComponent);
+    }
+  }
+
+  createEvent() {
+    if (this._eventCreator) {
       return;
     }
 
-    render(this._container, this._sortComponent);
-    render(this._container, this._eventListComponent);
+    this._eventCreator = new EventController(
+        this._container,
+        this._getDefaultEvent(),
+        this._destinations,
+        this._typesToOffers,
+        this._dataChangeHandler,
+        this._viewChangeHandler
+    );
 
-    this._renderGroupedEvents(groupEventsByBeginDate(this._events));
+    this._eventCreator.render(EventViewMode.CREATOR);
+    this.render();
   }
 
-  _createEventControllers(events, eventGroupComponent) {
-    return events.map((event) => {
+  _clear() {
+    remove(this._noEventsMessageComponent);
+    remove(this._sortComponent);
+    remove(this._eventListComponent);
+
+    this._eventControllers.forEach((eventController) => eventController.remove());
+    this._eventControllers = [];
+  }
+
+  _createEventControllers(eventGroup) {
+    const eventGroupComponent = new EventGroupComponent(eventGroup);
+
+    this._eventControllers = this._eventControllers.concat(eventGroup.events.map((event) => {
       const eventController = new EventController(
+          eventGroupComponent,
           event,
           this._destinations,
           this._typesToOffers,
-          eventGroupComponent,
           this._dataChangeHandler,
           this._viewChangeHandler
       );
 
       eventController.render();
       return eventController;
-    });
-  }
+    }));
 
-  _renderGroupedEvents(groupedEvents) {
-    this._eventControllers = [];
-
-    Object.entries(groupedEvents).forEach(([dateString, events], i) => {
-      const eventGroupComponent = new EventGroupComponent({number: i + 1, date: new Date(dateString)});
-      this._eventControllers = this._eventControllers.concat(
-          this._createEventControllers(events, eventGroupComponent)
-      );
-      render(this._eventListComponent, eventGroupComponent);
-    });
-  }
-
-  _renderSortedEvents(sortedEvents) {
-    const eventGroupComponent = new EventGroupComponent();
-    this._eventControllers = this._createEventControllers(sortedEvents, eventGroupComponent);
     render(this._eventListComponent, eventGroupComponent);
   }
 
+  _getDefaultEvent() {
+    const date = new Date();
+
+    return {
+      type: DEFAULT_EVENT_TYPE,
+      destination: this._destinations[0],
+      beginDate: date,
+      endDate: date,
+      price: 0,
+      isFavorite: false,
+      offers: []
+    };
+  }
+
   _dataChangeHandler(oldEvent, newEvent) {
-    replaceElements(this._events, oldEvent, newEvent);
+    if (oldEvent && newEvent) {
+      this._eventsModel.updateEvent(oldEvent.id, newEvent);
+    } else if (oldEvent) {
+      this._eventsModel.deleteEvent(oldEvent.id);
+    } else if (newEvent) {
+      this._eventsModel.addEvent(newEvent);
+    }
+
+    if (oldEvent || newEvent) {
+      this.render();
+    }
+
+    if (this._eventCreator) {
+      this._eventCreator.remove();
+      this._eventCreator = null;
+    }
   }
 
   _viewChangeHandler() {
     this._eventControllers.forEach((eventController) => eventController.setDefaultView());
+
+    if (this._eventCreator) {
+      this._eventCreator.remove();
+      this._eventCreator = null;
+    }
+  }
+
+  _filterTypeChangeHandler() {
+    this._sortComponent.setDefaultType();
+    this._eventsModel.setSortType(DEFAULT_SORT_TYPE);
+    this.render();
   }
 
   _sortTypeChangeHandler(sortType) {
-    this._eventListComponent.clear();
-
-    if (sortType === DEFAULT_SORT_TYPE) {
-      this._renderGroupedEvents(groupEventsByBeginDate(this._events));
-    } else {
-      this._renderSortedEvents(sortEvents(this._events, sortType));
-    }
+    this._eventsModel.setSortType(sortType);
+    this.render();
   }
 }

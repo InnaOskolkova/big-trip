@@ -23,7 +23,3 @@ export const groupBy = (array, groupCalculator) => array.reduce((groups, element
 
   return groups;
 }, {});
-
-export const replaceElements = (array, oldElement, newElement) => {
-  array[array.indexOf(oldElement)] = newElement;
-};

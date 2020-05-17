@@ -1,21 +1,20 @@
 import {EventViewMode} from "../const";
 
-import {replace} from "../utils/dom";
+import {render, replace, remove} from "../utils/dom";
 import {checkEscKey} from "../utils/keyboard";
 
 import EventComponent from "../components/event";
 import EditorComponent from "../components/editor";
 
 export default class EventController {
-  constructor(event, destinations, typesToOffers, container, dataChangeHandler, viewChangeHandler) {
+  constructor(container, event, destinations, typesToOffers, dataChangeHandler, viewChangeHandler) {
+    this._container = container;
     this._event = event;
-    this._eventComponent = null;
-    this._editorComponent = null;
-
     this._destinations = destinations;
     this._typesToOffers = typesToOffers;
 
-    this._container = container;
+    this._eventComponent = null;
+    this._editorComponent = null;
 
     this._dataChangeHandler = dataChangeHandler;
     this._viewChangeHandler = viewChangeHandler;
@@ -24,33 +23,69 @@ export default class EventController {
     this._editButtonClickHandler = this._editButtonClickHandler.bind(this);
     this._editorKeydownHandler = this._editorKeydownHandler.bind(this);
     this._editorSubmitHandler = this._editorSubmitHandler.bind(this);
-    this._favoriteButtonClickHandler = this._favoriteButtonClickHandler.bind(this);
+    this._deleteButtonClickHandler = this._deleteButtonClickHandler.bind(this);
     this._closeButtonClickHandler = this._closeButtonClickHandler.bind(this);
   }
 
-  render() {
-    const oldEventComponent = this._eventComponent;
-    const oldEditorComponent = this._editorComponent;
+  render(viewMode = EventViewMode.DEFAULT) {
+    this._viewMode = viewMode;
 
-    this._eventComponent = new EventComponent(this._event);
-    this._editorComponent = new EditorComponent(this._event, this._destinations, this._typesToOffers);
-
-    this._eventComponent.setEditButtonClickHandler(this._editButtonClickHandler);
-    this._editorComponent.setSubmitHandler(this._editorSubmitHandler);
-    this._editorComponent.setFavoriteButtonClickHandler(this._favoriteButtonClickHandler);
-    this._editorComponent.setCloseButtonClickHandler(this._closeButtonClickHandler);
-
-    if (oldEventComponent) {
-      replace(oldEventComponent, this._eventComponent);
-      replace(oldEditorComponent, this._editorComponent);
-    } else {
-      this._container.renderEvent(this._eventComponent);
+    switch (this._viewMode) {
+      case EventViewMode.DEFAULT:
+        this._renderEvent();
+        break;
+      case EventViewMode.CREATOR:
+        this._renderCreator();
+        break;
     }
+
+    this._setHandlers();
+  }
+
+  remove() {
+    if (this._eventComponent) {
+      remove(this._eventComponent);
+      this._eventComponent = null;
+    }
+
+    if (this._editorComponent) {
+      remove(this._editorComponent);
+      this._editorComponent = null;
+    }
+
+    document.removeEventListener(`keydown`, this._editorKeydownHandler);
   }
 
   setDefaultView() {
     if (this._viewMode !== EventViewMode.DEFAULT) {
       this._replaceEditorWithEvent();
+    }
+  }
+
+  _renderEvent() {
+    this._eventComponent = new EventComponent(this._event);
+    this._editorComponent = new EditorComponent(this._event, this._destinations, this._typesToOffers);
+
+    this._container.renderEvent(this._eventComponent);
+  }
+
+  _renderCreator() {
+    this._editorComponent = new EditorComponent(
+        this._event, this._destinations, this._typesToOffers, EventViewMode.CREATOR
+    );
+
+    render(this._container, this._editorComponent);
+  }
+
+  _setHandlers() {
+    this._editorComponent.setSubmitHandler(this._editorSubmitHandler);
+    this._editorComponent.setDeleteButtonClickHandler(this._deleteButtonClickHandler);
+    this._editorComponent.setCloseButtonClickHandler(this._closeButtonClickHandler);
+
+    if (this._viewMode === EventViewMode.CREATOR) {
+      document.addEventListener(`keydown`, this._editorKeydownHandler);
+    } else {
+      this._eventComponent.setEditButtonClickHandler(this._editButtonClickHandler);
     }
   }
 
@@ -75,20 +110,31 @@ export default class EventController {
   _editorKeydownHandler(evt) {
     if (checkEscKey(evt.key)) {
       evt.preventDefault();
-      this._replaceEditorWithEvent();
+
+      if (this._viewMode === EventViewMode.CREATOR) {
+        this._dataChangeHandler(null, null);
+      } else {
+        this._replaceEditorWithEvent();
+      }
     }
   }
 
   _editorSubmitHandler(evt) {
     evt.preventDefault();
-    this._replaceEditorWithEvent();
+
+    if (this._viewMode === EventViewMode.CREATOR) {
+      this._dataChangeHandler(null, this._editorComponent.getData());
+    } else {
+      this._dataChangeHandler(this._event, this._editorComponent.getData());
+    }
   }
 
-  _favoriteButtonClickHandler() {
-    const oldEvent = this._event;
-    this._event = Object.assign({}, oldEvent, {isFavorite: !oldEvent.isFavorite});
-    this._dataChangeHandler(oldEvent, this._event);
-    this.render();
+  _deleteButtonClickHandler() {
+    if (this._viewMode === EventViewMode.CREATOR) {
+      this._dataChangeHandler(null, null);
+    } else {
+      this._dataChangeHandler(this._event, null);
+    }
   }
 
   _closeButtonClickHandler() {

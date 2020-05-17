@@ -27,3 +27,11 @@ export const formatDuration = (beginDate, endDate) => {
     }`
   ).trim();
 };
+
+export const checkIfPast = (date) => date < Date.now();
+
+export const checkIfFuture = (date) => date > Date.now();
+
+export const compareDates = (leftDate, rightDate) => moment(leftDate).isSame(rightDate);
+
+export const getMaxDate = (dates) => new Date(Math.max(...dates));
