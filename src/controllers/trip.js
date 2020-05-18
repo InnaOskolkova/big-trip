@@ -65,6 +65,20 @@ export default class TripController {
     this.render();
   }
 
+  show() {
+    this._container.show();
+  }
+
+  hide() {
+    this._container.hide();
+    this._eventControllers.forEach((eventController) => eventController.setDefaultView());
+
+    if (this._eventCreator) {
+      this._eventCreator.remove();
+      this._eventCreator = null;
+    }
+  }
+
   _clear() {
     remove(this._noEventsMessageComponent);
     remove(this._sortComponent);
@@ -117,14 +131,12 @@ export default class TripController {
       this._eventsModel.addEvent(newEvent);
     }
 
-    if (oldEvent || newEvent) {
-      this.render();
-    }
-
     if (this._eventCreator) {
       this._eventCreator.remove();
       this._eventCreator = null;
     }
+
+    this.render();
   }
 
   _viewChangeHandler() {

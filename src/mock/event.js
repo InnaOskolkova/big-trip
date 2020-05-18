@@ -8,7 +8,7 @@ import {
   getRandomElements
 } from "../utils/common";
 
-const EVENT_AMOUNT = 4;
+const EVENT_AMOUNT = 10;
 
 const MILLISECONDS_PER_MINUTE = 60000;
 
