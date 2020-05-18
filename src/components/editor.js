@@ -2,7 +2,7 @@ import flatpickr from "flatpickr";
 import "flatpickr/dist/flatpickr.min.css";
 import "flatpickr/dist/themes/material_blue.css";
 
-import {eventGroupsToEventTypes, EventViewMode} from "../const";
+import {EventGroup, eventGroupsToEventTypes, EventViewMode} from "../const";
 
 import {compareDates, getMaxDate} from "../utils/date";
 import {upperCaseFirstLetter, getPreposition, replaceChars, checkIfNonNegativeNumericString} from "../utils/text";
@@ -35,7 +35,7 @@ const createTypeGroupMarkup = (group, checkedType) => (
 
 const createTypeListMarkup = (checkedType) => (
   `<div class="event__type-list">
-    ${Object.keys(eventGroupsToEventTypes).map((group) => createTypeGroupMarkup(group, checkedType)).join(``)}
+    ${Object.values(EventGroup).map((group) => createTypeGroupMarkup(group, checkedType)).join(``)}
   </div>`
 );
 

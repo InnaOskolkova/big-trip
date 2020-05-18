@@ -28,6 +28,8 @@ export const formatDuration = (beginDate, endDate) => {
   ).trim();
 };
 
+export const countHours = (duration) => Math.floor(moment.duration(duration).asHours());
+
 export const checkIfPast = (date) => date < Date.now();
 
 export const checkIfFuture = (date) => date > Date.now();

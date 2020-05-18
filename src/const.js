@@ -6,6 +6,14 @@ export const RenderPosition = {
 
 export const ESC_KEY = `Escape`;
 
+// Константы меню
+export const MenuItem = {
+  EVENTS: `table`,
+  STATS: `stats`
+};
+
+export const DEFAULT_MENU_ITEM = MenuItem.EVENTS;
+
 // Константы фильтров
 export const FilterType = {
   EVERYTHING: `everything`,
@@ -25,14 +33,57 @@ export const SortType = {
 export const DEFAULT_SORT_TYPE = SortType.EVENT;
 
 // Константы событий
-export const eventGroupsToEventTypes = {
-  transfer: [`taxi`, `bus`, `train`, `ship`, `transport`, `drive`, `flight`],
-  activity: [`check-in`, `sightseeing`, `restaurant`]
+export const EventType = {
+  TAXI: `taxi`,
+  BUS: `bus`,
+  TRAIN: `train`,
+  SHIP: `ship`,
+  TRANSPORT: `transport`,
+  DRIVE: `drive`,
+  FLIGHT: `flight`,
+  CHECK_IN: `check-in`,
+  SIGHTSEEING: `sightseeing`,
+  RESTAURANT: `restaurant`
 };
 
-export const eventGroupsToPrepositions = {transfer: `to`, activity: `in`};
+export const DEFAULT_EVENT_TYPE = EventType.TAXI;
 
-export const DEFAULT_EVENT_TYPE = `taxi`;
+export const eventTypesToEmoji = {
+  [EventType.TAXI]: `🚕`,
+  [EventType.BUS]: `🚌`,
+  [EventType.TRAIN]: `🚂`,
+  [EventType.SHIP]: `🛳`,
+  [EventType.TRANSPORT]: `🚊`,
+  [EventType.DRIVE]: `🚗`,
+  [EventType.FLIGHT]: `✈️`,
+  [EventType.CHECK_IN]: `🏨`,
+  [EventType.SIGHTSEEING]: `🏛`,
+  [EventType.RESTAURANT]: `🍴`
+};
+
+export const EventGroup = {
+  TRANSFER: `transfer`,
+  ACTIVITY: `activity`
+};
+
+export const eventGroupsToEventTypes = {
+  [EventGroup.TRANSFER]: [
+    EventType.TAXI,
+    EventType.BUS,
+    EventType.TRAIN,
+    EventType.SHIP,
+    EventType.TRANSPORT,
+    EventType.DRIVE,
+    EventType.FLIGHT
+  ],
+  [EventGroup.ACTIVITY]: [
+    EventType.CHECK_IN,
+    EventType.SIGHTSEEING,
+    EventType.RESTAURANT
+  ]
+};
+
+export const eventGroupsToPrepositions = {[EventGroup.TRANSFER]: `to`, [EventGroup.ACTIVITY]: `in`};
 
 // Этот список нужен только для моковых данных
 export const EVENT_TYPES = [
@@ -46,3 +97,14 @@ export const EventViewMode = {
   EDITOR: `editor`,
   CREATOR: `creator`
 };
+
+// Константы диаграмм
+export const CHART_FONT_FAMILY = `Montserrat`;
+
+export const ChartTitle = {
+  MONEY: `Money`,
+  TRANSPORT: `Transport`,
+  TIME: `Time spent`
+};
+
+export const CHART_BAR_HEIGHT = 55;
