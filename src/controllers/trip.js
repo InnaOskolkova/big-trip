@@ -2,7 +2,7 @@ import {RenderPosition, DEFAULT_SORT_TYPE, DEFAULT_EVENT_TYPE, EventViewMode} fr
 
 import {render, remove} from "../utils/dom";
 
-import NoEventsMessageComponent from "../components/no-events-message";
+import MessageComponent from "../components/message";
 import SortComponent from "../components/sort";
 import EventListComponent from "../components/event-list";
 import EventGroupComponent from "../components/event-group";
@@ -10,16 +10,18 @@ import EventGroupComponent from "../components/event-group";
 import EventController from "./event";
 
 export default class TripController {
-  constructor(container, eventsModel, destinations, typesToOffers) {
+  constructor(container, eventsModel, api) {
     this._container = container;
     this._eventsModel = eventsModel;
-    this._destinations = destinations;
-    this._typesToOffers = typesToOffers;
+    this._api = api;
+
+    this._destinations = null;
+    this._typesToOffers = null;
 
     this._eventCreator = null;
     this._eventControllers = [];
 
-    this._noEventsMessageComponent = new NoEventsMessageComponent();
+    this._messageComponent = new MessageComponent();
     this._sortComponent = new SortComponent();
     this._eventListComponent = new EventListComponent();
 
@@ -33,6 +35,14 @@ export default class TripController {
     this._sortComponent.setTypeChangeHandler(this._sortTypeChangeHandler);
   }
 
+  setDestinations(destinations) {
+    this._destinations = destinations;
+  }
+
+  setTypesToOffers(typesToOffers) {
+    this._typesToOffers = typesToOffers;
+  }
+
   render() {
     this._clear();
 
@@ -43,8 +53,21 @@ export default class TripController {
       render(this._container, this._eventListComponent);
       events.forEach(this._createEventControllers);
     } else if (!this._eventCreator) {
-      render(this._container, this._noEventsMessageComponent);
+      this._messageComponent.showNoEventsMessage();
+      render(this._container, this._messageComponent);
     }
+  }
+
+  renderLoadingMessage() {
+    this._clear();
+    this._messageComponent.showLoadingMessage();
+    render(this._container, this._messageComponent);
+  }
+
+  renderErrorMessage() {
+    this._clear();
+    this._messageComponent.showErrorMessage();
+    render(this._container, this._messageComponent);
   }
 
   createEvent() {
@@ -80,7 +103,7 @@ export default class TripController {
   }
 
   _clear() {
-    remove(this._noEventsMessageComponent);
+    remove(this._messageComponent);
     remove(this._sortComponent);
     remove(this._eventListComponent);
 
@@ -124,7 +147,12 @@ export default class TripController {
 
   _dataChangeHandler(oldEvent, newEvent) {
     if (oldEvent && newEvent) {
-      this._eventsModel.updateEvent(oldEvent.id, newEvent);
+      this._api.updateEvent(oldEvent.id, newEvent)
+        .then((eventFromServer) => {
+          this._eventsModel.updateEvent(oldEvent.id, eventFromServer);
+          this.render();
+        });
+      return;
     } else if (oldEvent) {
       this._eventsModel.deleteEvent(oldEvent.id);
     } else if (newEvent) {
