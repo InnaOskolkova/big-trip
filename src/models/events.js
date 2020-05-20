@@ -4,7 +4,7 @@ import {groupEventsByBeginDate} from "../utils/event";
 import {filterEvents} from "../utils/filter";
 import {sortEvents} from "../utils/sort";
 
-export default class Events {
+export default class EventsModel {
   constructor() {
     this._events = [];
 

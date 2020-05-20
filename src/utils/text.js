@@ -1,8 +1,5 @@
 import {eventTypesToEmoji, EventGroup, eventGroupsToEventTypes, eventGroupsToPrepositions} from "../const";
 
-export const splitTextIntoSentences = (text) => text
-  .split(`.`).slice(0, -1).map((sentence) => `${sentence.trim()}.`);
-
 export const upperCaseFirstLetter = (string) => string[0].toUpperCase() + string.slice(1);
 
 export const replaceChars = (string, oldChar, newChar) => string.split(oldChar).join(newChar);

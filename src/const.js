@@ -85,17 +85,19 @@ export const eventGroupsToEventTypes = {
 
 export const eventGroupsToPrepositions = {[EventGroup.TRANSFER]: `to`, [EventGroup.ACTIVITY]: `in`};
 
-// Этот список нужен только для моковых данных
-export const EVENT_TYPES = [
-  `taxi`, `bus`, `train`, `ship`, `transport`, `drive`, `flight`, `check-in`, `sightseeing`, `restaurant`
-];
-
 export const EVENT_MAX_RENDERED_OFFER_AMOUNT = 3;
 
 export const EventViewMode = {
   DEFAULT: `default`,
   EDITOR: `editor`,
   CREATOR: `creator`
+};
+
+// Константы сообщений
+export const MessageText = {
+  LOADING: `Loading...`,
+  ERROR: `Loading error`,
+  NO_EVENTS: `Click New Event to create your first point`
 };
 
 // Константы диаграмм
@@ -108,3 +110,13 @@ export const ChartTitle = {
 };
 
 export const CHART_BAR_HEIGHT = 55;
+
+// Константы сервера
+export const SERVER_URL = `https://11.ecmascript.pages.academy/big-trip`;
+
+export const SERVER_TOKEN = `Basic 4444 4444 4444 4444`;
+
+export const ServerRequestMethod = {
+  GET: `GET`,
+  PUT: `PUT`
+};
