@@ -22,7 +22,7 @@ const containerElement = mainElement.querySelector(`.page-body__container`);
 const eventListElement = containerElement.querySelector(`.trip-events`);
 
 const eventsModel = new EventsModel();
-const api = new API(`Basic ${Math.random()}`);
+const api = new API();
 
 const menuComponent = new MenuComponent();
 const tripComponent = new TripComponent();

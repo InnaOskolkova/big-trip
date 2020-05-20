@@ -189,11 +189,15 @@ const createOffersMarkup = (availableOffers, checkedOffers) => {
     return ``;
   }
 
+  const offersMarkup = availableOffers.map((offer) => createOfferMarkup(
+      offer, checkedOffers.some((checkedOffer) => checkedOffer.name === offer.name)
+  )).join(``);
+
   return (
     `<section class="event__section event__section--offers">
       <h3 class="event__section-title event__section-title--offers">Offers</h3>
       <div class="event__available-offers">
-        ${availableOffers.map((offer) => createOfferMarkup(offer, checkedOffers.includes(offer))).join(``)}
+        ${offersMarkup}
       </div>
     </section>`
   );
