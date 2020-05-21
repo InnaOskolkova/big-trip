@@ -41,7 +41,7 @@ export default class EventsModel {
     return this._events;
   }
 
-  addEvent(event) {
+  createEvent(event) {
     this._events = [event, ...this._events];
     this._callHandlers(this._dataChangeHandlers);
   }

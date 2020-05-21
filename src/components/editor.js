@@ -2,7 +2,7 @@ import flatpickr from "flatpickr";
 import "flatpickr/dist/flatpickr.min.css";
 import "flatpickr/dist/themes/material_blue.css";
 
-import {EventGroup, eventGroupsToEventTypes, EventViewMode} from "../const";
+import {EventGroup, eventGroupsToEventTypes, EventViewMode, ERROR_ANIMATION_DURATION} from "../const";
 
 import {compareDates, getMaxDate} from "../utils/date";
 import {upperCaseFirstLetter, getPreposition, replaceChars, checkIfNonNegativeNumericString} from "../utils/text";
@@ -268,7 +268,7 @@ const createEditorTemplate = (event, parameters) => {
 
         <button
           class="event__reset-btn"
-          type="reset">
+          type="button">
           ${viewMode === EventViewMode.EDITOR ? `Delete` : `Cancel`}
         </button>
 
@@ -361,6 +361,39 @@ export default class Editor extends AbstractSmartComponent {
 
   getData() {
     return Object.assign({}, this._eventCopy);
+  }
+
+  enable() {
+    Array.from(this.getElement().elements).forEach((element) => {
+      element.disabled = false;
+    });
+  }
+
+  disable() {
+    Array.from(this.getElement().elements).forEach((element) => {
+      element.disabled = true;
+    });
+  }
+
+  showSavingProcess() {
+    this.getElement().querySelector(`.event__save-btn`).textContent = `Saving…`;
+  }
+
+  hideSavingProcess() {
+    this.getElement().querySelector(`.event__save-btn`).textContent = `Save`;
+  }
+
+  showDeletingProcess() {
+    this.getElement().querySelector(`.event__reset-btn`).textContent = `Deleting…`;
+  }
+
+  hideDeletingProcess() {
+    this.getElement().querySelector(`.event__reset-btn`).textContent = `Delete`;
+  }
+
+  showError() {
+    this.getElement().classList.add(`error`);
+    setTimeout(() => this.getElement().classList.remove(`error`), ERROR_ANIMATION_DURATION);
   }
 
   _changeType(type) {

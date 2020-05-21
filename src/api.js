@@ -29,6 +29,16 @@ export default class API {
       .then((events) => events.map(ServerDataModel.convertEventFromServerFormat));
   }
 
+  createEvent(event) {
+    return this._sendRequest({
+      url: `points`,
+      method: ServerRequestMethod.POST,
+      headers: new Headers({"Content-Type": `application/json`}),
+      body: JSON.stringify(ServerDataModel.convertEventToServerFormat(event))
+    }).then((response) => response.json())
+      .then(ServerDataModel.convertEventFromServerFormat);
+  }
+
   updateEvent(id, event) {
     return this._sendRequest({
       url: `points/${id}`,
@@ -37,6 +47,13 @@ export default class API {
       body: JSON.stringify(ServerDataModel.convertEventToServerFormat(event))
     }).then((response) => response.json())
       .then(ServerDataModel.convertEventFromServerFormat);
+  }
+
+  deleteEvent(id) {
+    return this._sendRequest({
+      url: `points/${id}`,
+      method: ServerRequestMethod.DELETE
+    });
   }
 
   _sendRequest({url, method = ServerRequestMethod.GET, headers = new Headers(), body = null}) {
