@@ -957,4 +957,5 @@ main {
 }
 
 .error {
+  box-shadow: 0 0 4px tomato;
   animation: shake 0.6s; }

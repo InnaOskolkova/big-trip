@@ -130,6 +130,7 @@ export default class EventController {
     evt.preventDefault();
 
     this._editorComponent.disable();
+    this._editorComponent.hideError();
     this._editorComponent.showSavingProcess();
 
     if (this._viewMode === EventViewMode.CREATOR) {
@@ -141,6 +142,7 @@ export default class EventController {
 
   _deleteButtonClickHandler() {
     this._editorComponent.disable();
+    this._editorComponent.hideError();
     this._editorComponent.showDeletingProcess();
 
     if (this._viewMode === EventViewMode.CREATOR) {

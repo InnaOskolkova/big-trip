@@ -114,7 +114,7 @@ export const CHART_BAR_HEIGHT = 55;
 // Константы сервера
 export const SERVER_URL = `https://11.ecmascript.pages.academy/big-trip`;
 
-export const SERVER_TOKEN = `Basic 4444 4444 4444 4444 4444`;
+export const SERVER_TOKEN = `Basic 4444 4444 4444 4444`;
 
 export const ServerRequestMethod = {
   GET: `GET`,
@@ -122,6 +122,3 @@ export const ServerRequestMethod = {
   PUT: `PUT`,
   DELETE: `DELETE`
 };
-
-// Константы анимации
-export const ERROR_ANIMATION_DURATION = 600;
