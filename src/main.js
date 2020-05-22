@@ -83,3 +83,8 @@ Promise.all([
 }).catch(() => {
   tripController.renderErrorMessage();
 });
+
+window.addEventListener(`load`, () => {
+  navigator.serviceWorker.register(`/sw.js`)
+    .catch(() => {});
+});
