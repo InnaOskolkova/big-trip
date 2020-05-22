@@ -145,25 +145,41 @@ export default class TripController {
     };
   }
 
-  _dataChangeHandler(oldEvent, newEvent) {
+  _dataChangeHandler(eventController, oldEvent, newEvent) {
     if (oldEvent && newEvent) {
       this._api.updateEvent(oldEvent.id, newEvent)
         .then((eventFromServer) => {
           this._eventsModel.updateEvent(oldEvent.id, eventFromServer);
           this.render();
-        });
+        }).catch(() => eventController.showError());
+
       return;
-    } else if (oldEvent) {
-      this._eventsModel.deleteEvent(oldEvent.id);
-    } else if (newEvent) {
-      this._eventsModel.addEvent(newEvent);
     }
 
-    if (this._eventCreator) {
-      this._eventCreator.remove();
-      this._eventCreator = null;
+    if (oldEvent) {
+      this._api.deleteEvent(oldEvent.id)
+        .then(() => {
+          this._eventsModel.deleteEvent(oldEvent.id);
+          this.render();
+        }).catch(() => eventController.showError());
+
+      return;
     }
 
+    if (newEvent) {
+      this._api.createEvent(newEvent)
+        .then((eventFromServer) => {
+          this._eventsModel.createEvent(eventFromServer);
+          this._eventCreator.remove();
+          this._eventCreator = null;
+          this.render();
+        }).catch(() => this._eventCreator.showError());
+
+      return;
+    }
+
+    this._eventCreator.remove();
+    this._eventCreator = null;
     this.render();
   }
 

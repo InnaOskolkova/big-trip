@@ -27,11 +27,10 @@ export default class EventsModel {
     const filteredEvents = filterEvents(this._events, this._filterType);
 
     if (this._sortType === DEFAULT_SORT_TYPE) {
-      return Object.entries(groupEventsByBeginDate(filteredEvents)).map(([dateString, events], i) => ({
-        number: i + 1,
-        date: new Date(dateString),
-        events
-      }));
+      return Object.entries(groupEventsByBeginDate(filteredEvents))
+        .map(([dateString, events]) => ({date: new Date(dateString), events}))
+        .sort((leftGroup, rightGroup) => leftGroup.date - rightGroup.date)
+        .map((group, i) => Object.assign(group, {number: i + 1}));
     }
 
     return [{events: sortEvents(filteredEvents, this._sortType)}];
@@ -41,7 +40,7 @@ export default class EventsModel {
     return this._events;
   }
 
-  addEvent(event) {
+  createEvent(event) {
     this._events = [event, ...this._events];
     this._callHandlers(this._dataChangeHandlers);
   }

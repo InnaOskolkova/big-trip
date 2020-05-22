@@ -62,6 +62,13 @@ export default class EventController {
     }
   }
 
+  showError() {
+    this._editorComponent.enable();
+    this._editorComponent.hideSavingProcess();
+    this._editorComponent.hideDeletingProcess();
+    this._editorComponent.showError();
+  }
+
   _renderEvent() {
     this._eventComponent = new EventComponent(this._event);
     this._editorComponent = new EditorComponent(this._event, this._destinations, this._typesToOffers);
@@ -112,7 +119,7 @@ export default class EventController {
       evt.preventDefault();
 
       if (this._viewMode === EventViewMode.CREATOR) {
-        this._dataChangeHandler(null, null);
+        this._dataChangeHandler(this, null, null);
       } else {
         this._replaceEditorWithEvent();
       }
@@ -122,18 +129,26 @@ export default class EventController {
   _editorSubmitHandler(evt) {
     evt.preventDefault();
 
+    this._editorComponent.disable();
+    this._editorComponent.hideError();
+    this._editorComponent.showSavingProcess();
+
     if (this._viewMode === EventViewMode.CREATOR) {
-      this._dataChangeHandler(null, this._editorComponent.getData());
+      this._dataChangeHandler(this, null, this._editorComponent.getData());
     } else {
-      this._dataChangeHandler(this._event, this._editorComponent.getData());
+      this._dataChangeHandler(this, this._event, this._editorComponent.getData());
     }
   }
 
   _deleteButtonClickHandler() {
+    this._editorComponent.disable();
+    this._editorComponent.hideError();
+    this._editorComponent.showDeletingProcess();
+
     if (this._viewMode === EventViewMode.CREATOR) {
-      this._dataChangeHandler(null, null);
+      this._dataChangeHandler(this, null, null);
     } else {
-      this._dataChangeHandler(this._event, null);
+      this._dataChangeHandler(this, this._event, null);
     }
   }
 

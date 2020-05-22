@@ -118,5 +118,7 @@ export const SERVER_TOKEN = `Basic 4444 4444 4444 4444`;
 
 export const ServerRequestMethod = {
   GET: `GET`,
-  PUT: `PUT`
+  POST: `POST`,
+  PUT: `PUT`,
+  DELETE: `DELETE`
 };

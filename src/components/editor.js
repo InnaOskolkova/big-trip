@@ -4,7 +4,7 @@ import "flatpickr/dist/themes/material_blue.css";
 
 import {EventGroup, eventGroupsToEventTypes, EventViewMode} from "../const";
 
-import {compareDates, getMaxDate} from "../utils/date";
+import {getMaxDate} from "../utils/date";
 import {upperCaseFirstLetter, getPreposition, replaceChars, checkIfNonNegativeNumericString} from "../utils/text";
 
 import AbstractSmartComponent from "./abstract-smart-component";
@@ -268,7 +268,7 @@ const createEditorTemplate = (event, parameters) => {
 
         <button
           class="event__reset-btn"
-          type="reset">
+          type="button">
           ${viewMode === EventViewMode.EDITOR ? `Delete` : `Cancel`}
         </button>
 
@@ -304,6 +304,8 @@ export default class Editor extends AbstractSmartComponent {
     this._deleteButtonClickHandler = null;
     this._closeButtonClickHandler = null;
     this._changeHandler = this._changeHandler.bind(this);
+    this._beginDateChangeHandler = this._beginDateChangeHandler.bind(this);
+    this._endDateChangeHandler = this._endDateChangeHandler.bind(this);
 
     this._recoveryHandlers();
     this._createDatePickers();
@@ -363,6 +365,46 @@ export default class Editor extends AbstractSmartComponent {
     return Object.assign({}, this._eventCopy);
   }
 
+  enable() {
+    Array.from(this.getElement().elements).forEach((element) => {
+      element.disabled = false;
+    });
+  }
+
+  disable() {
+    Array.from(this.getElement().elements).forEach((element) => {
+      element.disabled = true;
+    });
+  }
+
+  showSavingProcess() {
+    this.getElement().querySelector(`.event__save-btn`).textContent = `Saving…`;
+  }
+
+  hideSavingProcess() {
+    this.getElement().querySelector(`.event__save-btn`).textContent = `Save`;
+  }
+
+  showDeletingProcess() {
+    if (this._viewMode === EventViewMode.EDITOR) {
+      this.getElement().querySelector(`.event__reset-btn`).textContent = `Deleting…`;
+    }
+  }
+
+  hideDeletingProcess() {
+    if (this._viewMode === EventViewMode.EDITOR) {
+      this.getElement().querySelector(`.event__reset-btn`).textContent = `Delete`;
+    }
+  }
+
+  showError() {
+    this.getElement().classList.add(`error`);
+  }
+
+  hideError() {
+    this.getElement().classList.remove(`error`);
+  }
+
   _changeType(type) {
     this._eventCopy.type = type;
     this._eventCopy.offers = [];
@@ -377,24 +419,6 @@ export default class Editor extends AbstractSmartComponent {
       this._eventCopy.destination = newDestination;
       this.rerender();
     }
-  }
-
-  _changeDates() {
-    const beginDateElement = this.getElement().querySelector(`#event-start-time`);
-    const endDateElement = this.getElement().querySelector(`#event-end-time`);
-
-    const beginDate = new Date(beginDateElement.value);
-    const endDate = new Date(endDateElement.value);
-
-    if (!compareDates(this._eventCopy.endDate, endDate)) {
-      this._eventCopy.endDate = endDate;
-      return;
-    }
-
-    this._eventCopy.beginDate = beginDate;
-    this._eventCopy.endDate = getMaxDate([beginDate, endDate]);
-    this._endDatePicker.destroy();
-    this._endDatePicker = this._createDatePicker(endDateElement, this._eventCopy.beginDate, this._eventCopy.endDate);
   }
 
   _changePrice(priceString) {
@@ -429,8 +453,6 @@ export default class Editor extends AbstractSmartComponent {
       this._changeType(value);
     } else if (classList.contains(`event__input--destination`)) {
       this._changeDestination(value);
-    } else if (classList.contains(`event__input--time`)) {
-      this._changeDates();
     } else if (classList.contains(`event__input--price`)) {
       this._changePrice(value);
     } else if (classList.contains(`event__favorite-checkbox`)) {
@@ -458,26 +480,56 @@ export default class Editor extends AbstractSmartComponent {
     this.getElement().addEventListener(`change`, this._changeHandler);
   }
 
-  _createDatePicker(dateElement, minDate, defaultDate) {
+  _beginDateChangeHandler([beginDate]) {
+    this._eventCopy.beginDate = beginDate;
+    this._eventCopy.endDate = getMaxDate([this._eventCopy.beginDate, this._eventCopy.endDate]);
+    this._createEndDatePicker();
+  }
+
+  _endDateChangeHandler([endDate]) {
+    this._eventCopy.endDate = endDate;
+  }
+
+  _createDatePicker(parameters) {
+    const {dateElement, minDate = null, defaultDate, onChange} = parameters;
+
     return flatpickr(dateElement, {
       enableTime: true,
       minDate,
       defaultDate,
       altInput: true,
-      altFormat: `d/m/y H:i`
+      altFormat: `d/m/y H:i`,
+      onChange
+    });
+  }
+
+  _createBeginDatePicker() {
+    if (this._beginDatePicker) {
+      this._beginDatePicker.destroy();
+    }
+
+    this._beginDatePicker = this._createDatePicker({
+      dateElement: this.getElement().querySelector(`#event-start-time`),
+      defaultDate: this._eventCopy.beginDate,
+      onChange: this._beginDateChangeHandler
+    });
+  }
+
+  _createEndDatePicker() {
+    if (this._endDatePicker) {
+      this._endDatePicker.destroy();
+    }
+
+    this._endDatePicker = this._createDatePicker({
+      dateElement: this.getElement().querySelector(`#event-end-time`),
+      minDate: this._eventCopy.beginDate,
+      defaultDate: this._eventCopy.endDate,
+      onChange: this._endDateChangeHandler
     });
   }
 
   _createDatePickers() {
-    if (this._beginDatePicker) {
-      this._beginDatePicker.destroy();
-      this._endDatePicker.destroy();
-    }
-
-    const beginDateElement = this.getElement().querySelector(`#event-start-time`);
-    const endDateElement = this.getElement().querySelector(`#event-end-time`);
-
-    this._beginDatePicker = this._createDatePicker(beginDateElement, null, this._eventCopy.beginDate);
-    this._endDatePicker = this._createDatePicker(endDateElement, this._eventCopy.beginDate, this._eventCopy.endDate);
+    this._createBeginDatePicker();
+    this._createEndDatePicker();
   }
 }
