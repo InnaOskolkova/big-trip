@@ -1,6 +1,6 @@
-import {SERVER_URL, SERVER_TOKEN, ServerRequestMethod} from "./const";
+import {SERVER_URL, SERVER_TOKEN, ServerRequestMethod} from "../const";
 
-import ServerDataModel from "./models/server-data";
+import ServerDataModel from "../models/server-data";
 
 const checkResponseStatus = (response) => {
   if (response.ok) {
@@ -54,6 +54,19 @@ export default class API {
       url: `points/${id}`,
       method: ServerRequestMethod.DELETE
     });
+  }
+
+  syncEvents(events) {
+    return this._sendRequest({
+      url: `points/sync`,
+      method: ServerRequestMethod.POST,
+      headers: new Headers({"Content-Type": `application/json`}),
+      body: JSON.stringify(events.map(ServerDataModel.convertEventToServerFormat))
+    }).then((response) => response.json())
+      .then(({created, updated}) => ([
+        ...created.map(ServerDataModel.convertEventFromServerFormat),
+        ...updated.map((event) => ServerDataModel.convertEventFromServerFormat(event.payload.point))
+      ]));
   }
 
   _sendRequest({url, method = ServerRequestMethod.GET, headers = new Headers(), body = null}) {

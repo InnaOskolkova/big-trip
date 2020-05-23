@@ -36,6 +36,13 @@ export default class ServerDataModel {
     }, {});
   }
 
+  static convertOffersToServerFormat(offers) {
+    return Object.entries(offers).map(([type, offersForType]) => ({
+      type,
+      offers: offersForType.map(ServerDataModel.convertOfferToServerFormat)
+    }));
+  }
+
   static convertEventFromServerFormat(event) {
     return {
       id: event.id,
