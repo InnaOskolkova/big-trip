@@ -12,7 +12,9 @@ import StatisticsComponent from "./components/statistics";
 import FilterController from "./controllers/filter";
 import TripController from "./controllers/trip";
 
-import API from "./api";
+import API from "./api/api";
+import Storage from "./api/storage";
+import Provider from "./api/provider";
 
 const headerElement = document.querySelector(`.trip-main`);
 const controlsElement = headerElement.querySelector(`.trip-controls`);
@@ -23,6 +25,8 @@ const eventListElement = containerElement.querySelector(`.trip-events`);
 
 const eventsModel = new EventsModel();
 const api = new API();
+const storage = new Storage(window.localStorage);
+const provider = new Provider(api, storage);
 
 const menuComponent = new MenuComponent();
 const tripComponent = new TripComponent();
@@ -30,7 +34,7 @@ const statisticsComponent = new StatisticsComponent();
 statisticsComponent.hide();
 
 const filterController = new FilterController(controlsElement, eventsModel);
-const tripController = new TripController(tripComponent, eventsModel, api);
+const tripController = new TripController(tripComponent, eventsModel, provider);
 
 const menuItemChangeHandler = (menuItem) => {
   switch (menuItem) {
@@ -55,8 +59,27 @@ const addButtonClickHandler = () => {
   tripController.createEvent();
 };
 
+const windowLoadHandler = () => navigator.serviceWorker.register(`/sw.js`).catch(() => {});
+
+const windowOfflineHandler = () => {
+  document.title += ` [offline]`;
+};
+
+const windowOnlineHandler = () => {
+  document.title = document.title.replace(` [offline]`, ``);
+
+  if (provider.isSyncNeeded) {
+    provider.syncEvents()
+      .then((events) => {
+        eventsModel.setEvents(events);
+        tripController.render();
+        statisticsComponent.renderCharts(eventsModel.getAllEvents());
+      });
+  }
+};
+
 const loadAndRenderEvents = () => {
-  api.getEvents()
+  provider.getEvents()
     .then((events) => eventsModel.setEvents(events))
     .finally(() => {
       tripController.render();
@@ -73,18 +96,17 @@ render(containerElement, statisticsComponent);
 filterController.render();
 tripController.renderLoadingMessage();
 
+window.addEventListener(`load`, windowLoadHandler);
+
 Promise.all([
-  api.getDestinations(),
-  api.getOffers()
+  provider.getDestinations(),
+  provider.getOffers()
 ]).then(([destinations, typesToOffers]) => {
+  window.addEventListener(`offline`, windowOfflineHandler);
+  window.addEventListener(`online`, windowOnlineHandler);
   tripController.setDestinations(destinations);
   tripController.setTypesToOffers(typesToOffers);
   loadAndRenderEvents();
 }).catch(() => {
   tripController.renderErrorMessage();
-});
-
-window.addEventListener(`load`, () => {
-  navigator.serviceWorker.register(`/sw.js`)
-    .catch(() => {});
 });
