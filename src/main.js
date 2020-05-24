@@ -1,15 +1,13 @@
-import {RenderPosition, MenuItem} from "./const";
+import {MenuItem} from "./const";
 
 import {render} from "./utils/dom";
 
 import EventsModel from "./models/events";
 
-import InfoComponent from "./components/info";
-import MenuComponent from "./components/menu";
 import TripComponent from "./components/trip";
 import StatisticsComponent from "./components/statistics";
 
-import FilterController from "./controllers/filter";
+import HeaderController from "./controllers/header";
 import TripController from "./controllers/trip";
 
 import API from "./api/api";
@@ -17,33 +15,29 @@ import Storage from "./api/storage";
 import Provider from "./api/provider";
 
 const headerElement = document.querySelector(`.trip-main`);
-const controlsElement = headerElement.querySelector(`.trip-controls`);
-const addButtonElement = headerElement.querySelector(`.trip-main__event-add-btn`);
-const mainElement = document.querySelector(`.page-main`);
-const containerElement = mainElement.querySelector(`.page-body__container`);
+const containerElement = document.querySelector(`.page-main .page-body__container`);
 const eventListElement = containerElement.querySelector(`.trip-events`);
 
-const eventsModel = new EventsModel();
-const api = new API();
-const storage = new Storage(window.localStorage);
-const provider = new Provider(api, storage);
-
-const menuComponent = new MenuComponent();
 const tripComponent = new TripComponent();
 const statisticsComponent = new StatisticsComponent();
+
+render(eventListElement, tripComponent);
+render(containerElement, statisticsComponent);
 statisticsComponent.hide();
 
-const filterController = new FilterController(controlsElement, eventsModel);
-const tripController = new TripController(tripComponent, eventsModel, provider);
+const eventsModel = new EventsModel();
+const provider = new Provider(new API(), new Storage(window.localStorage));
 
 const menuItemChangeHandler = (menuItem) => {
   switch (menuItem) {
     case MenuItem.EVENTS:
-      statisticsComponent.hide();
+      headerController.showFilters();
       tripController.show();
+      statisticsComponent.hide();
       break;
     case MenuItem.STATS:
-      filterController.setDefaultType();
+      headerController.setDefaultFilterType();
+      headerController.hideFilters();
       tripController.hide();
       statisticsComponent.show();
       statisticsComponent.renderCharts(eventsModel.getAllEvents());
@@ -52,12 +46,25 @@ const menuItemChangeHandler = (menuItem) => {
 };
 
 const addButtonClickHandler = () => {
-  menuComponent.setDefaultItem();
-  filterController.setDefaultType();
+  headerController.setDefaultMenuItem();
+  headerController.setDefaultFilterType();
+  headerController.showFilters();
+  headerController.disableAddButton();
   statisticsComponent.hide();
   tripController.show();
   tripController.createEvent();
 };
+
+const headerController = new HeaderController(headerElement, eventsModel, menuItemChangeHandler, addButtonClickHandler);
+headerController.render();
+headerController.disableAddButton();
+
+const eventCreatorCloseHandler = () => headerController.enableAddButton();
+
+const tripController = new TripController(tripComponent, eventsModel, provider, eventCreatorCloseHandler);
+tripController.renderLoadingMessage();
+
+let isCriticalInfoLoaded = false;
 
 const windowLoadHandler = () => navigator.serviceWorker.register(`/sw.js`).catch(() => {});
 
@@ -68,7 +75,7 @@ const windowOfflineHandler = () => {
 const windowOnlineHandler = () => {
   document.title = document.title.replace(` [offline]`, ``);
 
-  if (provider.isSyncNeeded) {
+  if (isCriticalInfoLoaded && provider.isSyncNeeded) {
     provider.syncEvents()
       .then((events) => {
         eventsModel.setEvents(events);
@@ -78,35 +85,25 @@ const windowOnlineHandler = () => {
   }
 };
 
-const loadAndRenderEvents = () => {
-  provider.getEvents()
-    .then((events) => eventsModel.setEvents(events))
-    .finally(() => {
-      tripController.render();
-      menuComponent.setItemChangeHandler(menuItemChangeHandler);
-      addButtonElement.addEventListener(`click`, addButtonClickHandler);
-    });
-};
-
-render(headerElement, new InfoComponent(), RenderPosition.AFTERBEGIN);
-render(controlsElement, menuComponent);
-render(eventListElement, tripComponent);
-render(containerElement, statisticsComponent);
-
-filterController.render();
-tripController.renderLoadingMessage();
-
 window.addEventListener(`load`, windowLoadHandler);
+window.addEventListener(`offline`, windowOfflineHandler);
+window.addEventListener(`online`, windowOnlineHandler);
 
 Promise.all([
   provider.getDestinations(),
   provider.getOffers()
 ]).then(([destinations, typesToOffers]) => {
-  window.addEventListener(`offline`, windowOfflineHandler);
-  window.addEventListener(`online`, windowOnlineHandler);
+  isCriticalInfoLoaded = true;
+
   tripController.setDestinations(destinations);
   tripController.setTypesToOffers(typesToOffers);
-  loadAndRenderEvents();
+
+  provider.getEvents()
+    .then((events) => eventsModel.setEvents(events))
+    .finally(() => {
+      headerController.enableAddButton();
+      tripController.render();
+    });
 }).catch(() => {
   tripController.renderErrorMessage();
 });

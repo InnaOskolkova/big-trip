@@ -69,5 +69,3 @@ export default class Menu extends AbstractComponent {
     this._itemChangeHandler = handler;
   }
 }
-
-

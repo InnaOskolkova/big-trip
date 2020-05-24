@@ -1,4 +1,13 @@
-import {eventTypesToEmoji, EventGroup, eventGroupsToEventTypes, eventGroupsToPrepositions} from "../const";
+import {
+  MAX_ROUTE_LENGTH,
+  eventTypesToEmoji,
+  EventGroup,
+  eventGroupsToEventTypes,
+  eventGroupsToPrepositions
+} from "../const";
+
+export const formatRoute = (route) => route.length <= MAX_ROUTE_LENGTH ? route.join(` &mdash; `) :
+  `${route[0]} &mdash; … &mdash; ${route[route.length - 1]}`;
 
 export const upperCaseFirstLetter = (string) => string[0].toUpperCase() + string.slice(1);
 

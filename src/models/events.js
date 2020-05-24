@@ -17,6 +17,7 @@ export default class EventsModel {
 
   setEvents(events) {
     this._events = events;
+    this._callHandlers(this._dataChangeHandlers);
   }
 
   getEvents() {

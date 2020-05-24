@@ -10,7 +10,7 @@ import EventGroupComponent from "../components/event-group";
 import EventController from "./event";
 
 export default class TripController {
-  constructor(container, eventsModel, api) {
+  constructor(container, eventsModel, api, eventCreatorCloseHandler) {
     this._container = container;
     this._eventsModel = eventsModel;
     this._api = api;
@@ -25,11 +25,12 @@ export default class TripController {
     this._sortComponent = new SortComponent();
     this._eventListComponent = new EventListComponent();
 
-    this._createEventControllers = this._createEventControllers.bind(this);
+    this._eventCreatorCloseHandler = eventCreatorCloseHandler;
     this._dataChangeHandler = this._dataChangeHandler.bind(this);
     this._viewChangeHandler = this._viewChangeHandler.bind(this);
     this._filterTypeChangeHandler = this._filterTypeChangeHandler.bind(this);
     this._sortTypeChangeHandler = this._sortTypeChangeHandler.bind(this);
+    this._createEventControllers = this._createEventControllers.bind(this);
 
     this._eventsModel.setFilterTypeChangeHandler(this._filterTypeChangeHandler);
     this._sortComponent.setTypeChangeHandler(this._sortTypeChangeHandler);
@@ -95,11 +96,7 @@ export default class TripController {
   hide() {
     this._container.hide();
     this._eventControllers.forEach((eventController) => eventController.setDefaultView());
-
-    if (this._eventCreator) {
-      this._eventCreator.remove();
-      this._eventCreator = null;
-    }
+    this._closeEventCreator();
   }
 
   _clear() {
@@ -145,6 +142,14 @@ export default class TripController {
     };
   }
 
+  _closeEventCreator() {
+    if (this._eventCreator) {
+      this._eventCreator.remove();
+      this._eventCreator = null;
+      this._eventCreatorCloseHandler();
+    }
+  }
+
   _dataChangeHandler(eventController, oldEvent, newEvent) {
     if (oldEvent && newEvent) {
       this._api.updateEvent(oldEvent.id, newEvent)
@@ -170,26 +175,20 @@ export default class TripController {
       this._api.createEvent(newEvent)
         .then((eventFromServer) => {
           this._eventsModel.createEvent(eventFromServer);
-          this._eventCreator.remove();
-          this._eventCreator = null;
+          this._closeEventCreator();
           this.render();
         }).catch(() => this._eventCreator.showError());
 
       return;
     }
 
-    this._eventCreator.remove();
-    this._eventCreator = null;
+    this._closeEventCreator();
     this.render();
   }
 
   _viewChangeHandler() {
     this._eventControllers.forEach((eventController) => eventController.setDefaultView());
-
-    if (this._eventCreator) {
-      this._eventCreator.remove();
-      this._eventCreator = null;
-    }
+    this._closeEventCreator();
   }
 
   _filterTypeChangeHandler() {
