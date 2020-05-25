@@ -6,6 +6,9 @@ export const RenderPosition = {
 
 export const ESC_KEY = `Escape`;
 
+// Константы информации о путешествии
+export const MAX_ROUTE_LENGTH = 3;
+
 // Константы меню
 export const MenuItem = {
   EVENTS: `table`,

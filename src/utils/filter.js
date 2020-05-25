@@ -19,3 +19,22 @@ export const filterEvents = (events, filterType) => {
 
   return filteredEvents;
 };
+
+export const countEventsForEachFilter = (events) => {
+  const filtersToCounters = Object.values(FilterType)
+    .reduce((acc, filterType) => Object.assign(acc, {[filterType]: 0}), {});
+
+  events.forEach((event) => {
+    filtersToCounters[FilterType.EVERYTHING]++;
+
+    if (checkIfPastEvent(event)) {
+      filtersToCounters[FilterType.PAST]++;
+    }
+
+    if (checkIfFutureEvent(event)) {
+      filtersToCounters[FilterType.FUTURE]++;
+    }
+  });
+
+  return filtersToCounters;
+};

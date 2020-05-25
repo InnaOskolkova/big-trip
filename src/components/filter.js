@@ -61,6 +61,14 @@ export default class Filter extends AbstractComponent {
     this.getElement().querySelector(`[value="${this._type}"]`).checked = true;
   }
 
+  enableType(type) {
+    this.getElement().querySelector(`[value="${type}"]`).disabled = false;
+  }
+
+  disableType(type) {
+    this.getElement().querySelector(`[value="${type}"]`).disabled = true;
+  }
+
   setTypeChangeHandler(handler) {
     this._typeChangeHandler = handler;
   }

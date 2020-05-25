@@ -26,9 +26,6 @@ main {
   margin: -1px;
   border: 0; }
 
-.hidden {
-  display: none; }
-
 .page-body {
   display: -ms-flexbox;
   display: flex;
@@ -160,6 +157,7 @@ main {
   width: 600px; }
 
 .trip-main__event-add-btn {
+  margin-left: auto;
   min-width: 170px; }
   .trip-main__event-add-btn::before {
     content: "\002B\000A0"; }
@@ -268,6 +266,10 @@ main {
 
 .trip-filters__filter-input:checked + .trip-filters__filter-label {
   opacity: 1;
+  cursor: default; }
+
+.trip-filters__filter-input:disabled + .trip-filters__filter-label {
+  opacity: 0.6;
   cursor: default; }
 
 .trip-search {
@@ -933,6 +935,9 @@ main {
 
 .statistics__item:not(:last-child) {
   margin-bottom: 78px; }
+
+.hidden {
+  display: none; }
 
 @keyframes shake {
   0%,

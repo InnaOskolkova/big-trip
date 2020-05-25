@@ -19,6 +19,10 @@ export default class Provider {
     this._isSyncNeeded = false;
   }
 
+  get isSyncNeeded() {
+    return this._isSyncNeeded;
+  }
+
   getDestinations() {
     return this._api.getDestinations()
       .then((destinations) => {
@@ -125,9 +129,5 @@ export default class Provider {
       }).catch(() => {
         throw new Error(`Sync error`);
       });
-  }
-
-  get isSyncNeeded() {
-    return this._isSyncNeeded;
   }
 }

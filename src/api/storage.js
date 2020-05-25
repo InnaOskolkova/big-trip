@@ -8,6 +8,10 @@ export default class Storage {
   }
 
   getItem(key) {
-    return JSON.parse(this._storage.getItem(key));
+    try {
+      return JSON.parse(this._storage.getItem(key));
+    } catch (error) {
+      return null;
+    }
   }
 }
